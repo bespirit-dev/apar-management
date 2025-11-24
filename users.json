@@ -1,0 +1,50 @@
+{
+  "users": {
+    "0097037": {
+      "username": "Muhammad Dwika Fajar Saputra",
+      "status": "admin",
+      "password": "YamahaR15"
+    },
+    "0089744": {
+      "username": "Rina Hadaningrum",
+      "status": "admin",
+      "password": "Dsnwp2025"
+    },
+    "0016145": {
+      "username": "Diah Ratriningrum",
+      "status": "admin",
+      "password": "bsp2025"
+    },
+    "0002718": {
+      "username": "Sunaryo",
+      "status": "admin",
+      "password": "AdminAPAR1"
+    },
+    "0002032": {
+      "username": "Juliana Santi Maharsi",
+      "status": "admin",
+      "password": "dswnwp25"
+    },
+     "0002887": {
+      "username": "Agus Budi TW",
+      "status": "admin",
+      "password": "adminA1"
+    }, 
+     "0002243": {
+      "username": "Dwi Purwanto",
+      "status": "admin",
+      "password": "adminA2"
+    }, 
+     "00001pos": {
+      "username": "Teka Pos-1",
+      "status": "Guest",
+      "password": "guestA1"
+    },
+
+    "00002pos": {
+      "username": "Teka Pos-2",
+      "status": "Guest",
+      "password": "guestA2"
+    }
+  }
+}
