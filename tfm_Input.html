@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <link rel="icon" href="Logo.png" type="image/png">
-  <meta charset="UTF-8">
+<meta charset="UTF-8">
 
 <style>
 
@@ -285,21 +284,14 @@ document.getElementById('aparForm').addEventListener('submit', async function(ev
         expired: document.getElementById('expired').value,
         segelCondition: document.getElementById('segelCondition').value,
         nozzleCondition: document.getElementById('nozzleCondition').value,
-        5rCondition: document.getElementById('5rCondition').value,
+        r5Condition: document.getElementById('5rCondition').value,
         status: document.getElementById('status').value
     };
-  
-    console.log("Data yang akan disimpan:", data);
 
     set(ref(db, 'aparData/' + newKey), data)
     .then(()=>{ alert('Data APAR berhasil disimpan!'); location.reload(); })
-    .catch(err=>{
-    console.error('Gagal menyimpan:', err);
-    alert('Gagal menyimpan: ' + err);
+    .catch(err=>{ alert('Gagal menyimpan: ' + err); });
 });
 </script>
 </body>
 </html>
-
-
-
