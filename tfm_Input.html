@@ -288,13 +288,18 @@ document.getElementById('aparForm').addEventListener('submit', async function(ev
         5rCondition: document.getElementById('5rCondition').value,
         status: document.getElementById('status').value
     };
+  
+    console.log("Data yang akan disimpan:", data);
 
     set(ref(db, 'aparData/' + newKey), data)
     .then(()=>{ alert('Data APAR berhasil disimpan!'); location.reload(); })
-    .catch(err=>{ alert('Gagal menyimpan: ' + err); });
+    .catch(err=>{
+    console.error('Gagal menyimpan:', err);
+    alert('Gagal menyimpan: ' + err);
 });
 </script>
 </body>
 </html>
+
 
 
