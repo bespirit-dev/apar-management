@@ -286,6 +286,7 @@ document.getElementById('aparForm').addEventListener('submit', async function(ev
         nozzleCondition: document.getElementById('nozzleCondition').value,
         r5Condition: document.getElementById('5rCondition').value,
         status: document.getElementById('status').value
+        createdBy: auth.currentUser.uid  // penting!
     };
 
     set(ref(db, 'aparData/' + newKey), data)
@@ -295,3 +296,4 @@ document.getElementById('aparForm').addEventListener('submit', async function(ev
 </script>
 </body>
 </html>
+
