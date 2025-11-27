@@ -2,7 +2,6 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Form Input APAR</title>
 <style>
   .form-title {
     text-align: center;
@@ -64,6 +63,7 @@
 </style>
 </head>
 <body>
+
 <form id="aparForm">
   <div class="form-title">Form Input APAR</div>
 
@@ -116,21 +116,21 @@
   <label for="expired">Expired Date</label>
   <input type="date" id="expired" name="expired">
 
-  <label for="segelCondition">Segel</label>
+  <label for="segel">Segel</label>
   <select id="segelCondition" name="segelCondition">
     <option value="">--Choose--</option>
     <option value="baik">Baik</option>
     <option value="rusak">Rusak</option>
   </select>
 
-  <label for="nozzleCondition">Nozzle</label>
+  <label for="nozzle">Nozzle</label>
   <select id="nozzleCondition" name="nozzleCondition">
     <option value="">--Choose--</option>
     <option value="baik">Baik</option>
     <option value="rusak">Rusak</option>
   </select>
 
-  <label for="5rCondition">5R</label>
+  <label for="5r">5R</label>
   <select id="5rCondition" name="5rCondition">
     <option value="">--Choose--</option>
     <option value="bersih">Bersih</option>
@@ -167,7 +167,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// DOM Elements
+// DOM ELEMENTS
 const numberSelect = document.getElementById("number");
 const locationInput = document.getElementById("location");
 
@@ -184,7 +184,6 @@ async function getUsedNumbers(location) {
     const dbRef = ref(db, "aparData");
     const snapshot = await get(dbRef);
     const used = [];
-
     if (snapshot.exists()) {
         const data = snapshot.val();
         for (let key in data) {
@@ -200,7 +199,6 @@ async function getUsedNumbers(location) {
 locationInput.addEventListener("input", async () => {
     const location = locationInput.value.trim();
     const used = await getUsedNumbers(location);
-
     [...numberSelect.options].forEach(opt => opt.disabled = false);
     used.forEach(num => {
         const opt = [...numberSelect.options].find(o => o.value === num);
@@ -226,31 +224,28 @@ document.getElementById('aparForm').addEventListener('submit', async (event) => 
         return;
     }
 
+    // Validasi semua field
     const requiredFields = [
         'number','location','type','pressure','pressureUnit',
         'capacity','capacityUnit','expired','segelCondition',
         'nozzleCondition','5rCondition','status'
     ];
-
     let valid = true;
-    let firstEmpty = null;
     for (let id of requiredFields) {
         const field = document.getElementById(id);
         if (!field.value) {
             field.style.borderColor = "red";
-            if (!firstEmpty) firstEmpty = field;
             valid = false;
         } else {
             field.style.borderColor = "";
         }
     }
-
     if (!valid) {
-        firstEmpty.focus();
         alert("Mohon isi semua field!");
         return;
     }
 
+    // Simpan data tanpa login
     const newKey = Date.now();
     const data = {
         number,
@@ -263,12 +258,15 @@ document.getElementById('aparForm').addEventListener('submit', async (event) => 
         expired: document.getElementById('expired').value,
         segelCondition: document.getElementById('segelCondition').value,
         nozzleCondition: document.getElementById('nozzleCondition').value,
-        "5rCondition": document.getElementById('5rCondition').value,
+        r5Condition: document.getElementById('5rCondition').value,
         status: document.getElementById('status').value
     };
 
     set(ref(db, "aparData/" + newKey), data)
-        .then(() => { alert("Data APAR berhasil disimpan!"); location.reload(); })
+        .then(() => { 
+            alert("Data APAR berhasil disimpan!"); 
+            location.reload(); 
+        })
         .catch(err => alert("Gagal menyimpan: " + err));
 });
 </script>
