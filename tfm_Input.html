@@ -196,24 +196,28 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// Generate nomor 001–079
+// DOM ELEMENTS
 const numberSelect = document.getElementById("number");
-for(let i=1; i<=93; i++){
-    const numStr = i.toString().padStart(3,'0');
+const locationInput = document.getElementById("location");
+
+// Generate nomor 001–093
+for (let i = 1; i <= 93; i++) {
+    const numStr = i.toString().padStart(3, '0');
     const opt = document.createElement("option");
     opt.value = opt.textContent = numStr;
     numberSelect.appendChild(opt);
 }
 
-// Ambil nomor yang sudah dipakai
-async function getUsedNumbers(location){
+// Ambil nomor yang sudah dipakai per lokasi
+async function getUsedNumbers(location) {
     const dbRef = ref(db, "aparData");
     const snapshot = await get(dbRef);
     const used = [];
-    if(snapshot.exists()){
+
+    if (snapshot.exists()) {
         const data = snapshot.val();
-        for(let key in data){
-            if(location && data[key].location?.toLowerCase() === location.toLowerCase()){
+        for (let key in data) {
+            if (location && data[key].location?.toLowerCase() === location.toLowerCase()) {
                 used.push(data[key].number);
             }
         }
@@ -221,35 +225,35 @@ async function getUsedNumbers(location){
     return used;
 }
 
-// Disable nomor yang sudah digunakan
-document.getElementById("location").addEventListener("input", async ()=>{
+// Disable nomor sesuai lokasi
+locationInput.addEventListener("input", async () => {
     const location = locationInput.value.trim();
     const used = await getUsedNumbers(location);
 
-    for(let opt of numberSelect.options){
-        if(opt.value !== "") opt.disabled = false;
-    }
+    [...numberSelect.options].forEach(opt => {
+        opt.disabled = false;
+    });
 
-    used.forEach(num=>{
-        const opt = [...numberSelect.options].find(o=>o.value === num);
-        if(opt) opt.disabled = true;
+    used.forEach(num => {
+        const opt = [...numberSelect.options].find(o => o.value === num);
+        if (opt) opt.disabled = true;
     });
 });
 
-// Submit Form
-document.getElementById('aparForm').addEventListener('submit', async (event)=>{
+// Submit form
+document.getElementById('aparForm').addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const location = locationInput.value.trim();
     const number = numberSelect.value;
 
-    if(!location || !number){
+    if (!location || !number) {
         alert("Location dan Number harus diisi!");
         return;
     }
 
     const used = await getUsedNumbers(location);
-    if(used.includes(number)){
+    if (used.includes(number)) {
         alert(`Nomor ${number} sudah digunakan di lokasi ${location}.`);
         return;
     }
@@ -261,23 +265,23 @@ document.getElementById('aparForm').addEventListener('submit', async (event)=>{
     ];
 
     let valid = true;
-    for(let id of requiredFields){
+    for (let id of requiredFields) {
         const field = document.getElementById(id);
-        if(!field.value){
-            valid = false;
+        if (!field.value) {
             field.style.borderColor = "red";
+            valid = false;
         } else {
             field.style.borderColor = "";
         }
     }
 
-    if(!valid){
+    if (!valid) {
         alert("Mohon isi semua field!");
         return;
     }
 
-    // Auth check
-    if(!auth.currentUser){
+    // Cek login Firebase
+    if (!auth.currentUser) {
         alert("Anda belum login!");
         return;
     }
@@ -294,18 +298,20 @@ document.getElementById('aparForm').addEventListener('submit', async (event)=>{
         expired: document.getElementById('expired').value,
         segelCondition: document.getElementById('segelCondition').value,
         nozzleCondition: document.getElementById('nozzleCondition').value,
-        r5Condition: document.getElementById('5rCondition').value,  // konsisten!
+        r5Condition: document.getElementById('5rCondition').value,
         status: document.getElementById('status').value,
-        createdBy: auth.currentUser.uid  // FIXED
+        createdBy: auth.currentUser.uid
     };
 
     set(ref(db, "aparData/" + newKey), data)
-        .then(()=>{ alert("Data APAR berhasil disimpan!"); location.reload(); })
-        .catch(err=> alert("Gagal menyimpan: " + err));
+        .then(() => { alert("Data APAR berhasil disimpan!"); location.reload(); })
+        .catch(err => alert("Gagal menyimpan: " + err));
 });
 </script>
-
 </body>
 </html>
+</body>
+</html>
+
 
 
