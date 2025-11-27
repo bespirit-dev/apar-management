@@ -2,25 +2,21 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-
+<title>Form Input APAR</title>
 <style>
-
   .form-title {
-  text-align: center;
-  font-size: 38px;
-  margin-bottom: 10px;
-  font-weight: bold;
-  color: #333;
-  font-family: "bauhaus 93", sans-serif;
-}
-
-
+    text-align: center;
+    font-size: 38px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #333;
+    font-family: "bauhaus 93", sans-serif;
+  }
   body { 
     font-family: Arial, sans-serif; 
     padding: 20px; 
     background-image: url(bgj.png);
   }
-
   form { 
     background: #fff; 
     padding: 14px; 
@@ -30,13 +26,11 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     opacity: 0.95;
   }
-
   label { 
     display: block; 
     margin-bottom: 5px; 
     font-weight: bold; 
   }
-
   select, input { 
     width: 100%; 
     padding: 8px; 
@@ -44,18 +38,15 @@
     border: 1px solid #ccc; 
     border-radius: 5px; 
   }
-
   .form-group-inline { 
     display: flex; 
     gap: 10px; 
     align-items: flex-end; 
     margin-bottom: 15px; 
   }
-
   .form-group-inline > div { 
     flex: 1; 
   }
-
   button { 
     background: #c9302c; 
     color: #fff; 
@@ -67,33 +58,15 @@
     margin-bottom: 10px; 
     font-size: 16px;
   }
-
   button:hover { 
     background: #d9534f; 
   }
-
-  .btn-dashboard { 
-    background: #333; 
-    color: #fff; 
-    padding: 8px; 
-    font-size: 10px; 
-    width: auto; 
-    display: inline-block; 
-    border-radius: 10px; 
-    text-decoration: none;
-  }
-
-  .btn-dashboard:hover { 
-    background: #31b0d5; 
-  }
-  
 </style>
 </head>
 <body>
-
-<hr>
 <form id="aparForm">
   <div class="form-title">Form Input APAR</div>
+
   <label for="number">Number of APAR</label>
   <select id="number" name="number">
     <option value="">--Choose Number--</option>
@@ -143,21 +116,21 @@
   <label for="expired">Expired Date</label>
   <input type="date" id="expired" name="expired">
 
-  <label for="segel">Segel</label>
+  <label for="segelCondition">Segel</label>
   <select id="segelCondition" name="segelCondition">
     <option value="">--Choose--</option>
     <option value="baik">Baik</option>
     <option value="rusak">Rusak</option>
   </select>
 
-  <label for="nozzle">Nozzle</label>
+  <label for="nozzleCondition">Nozzle</label>
   <select id="nozzleCondition" name="nozzleCondition">
     <option value="">--Choose--</option>
     <option value="baik">Baik</option>
     <option value="rusak">Rusak</option>
   </select>
 
-  <label for="5r">5R</label>
+  <label for="5rCondition">5R</label>
   <select id="5rCondition" name="5rCondition">
     <option value="">--Choose--</option>
     <option value="bersih">Bersih</option>
@@ -179,7 +152,6 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-database.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAoZPIGUuCZxosN5m2LFirk9Spf7c9QZrA",
@@ -194,9 +166,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const auth = getAuth(app);
 
-// DOM ELEMENTS
+// DOM Elements
 const numberSelect = document.getElementById("number");
 const locationInput = document.getElementById("location");
 
@@ -230,10 +201,7 @@ locationInput.addEventListener("input", async () => {
     const location = locationInput.value.trim();
     const used = await getUsedNumbers(location);
 
-    [...numberSelect.options].forEach(opt => {
-        opt.disabled = false;
-    });
-
+    [...numberSelect.options].forEach(opt => opt.disabled = false);
     used.forEach(num => {
         const opt = [...numberSelect.options].find(o => o.value === num);
         if (opt) opt.disabled = true;
@@ -265,10 +233,12 @@ document.getElementById('aparForm').addEventListener('submit', async (event) => 
     ];
 
     let valid = true;
+    let firstEmpty = null;
     for (let id of requiredFields) {
         const field = document.getElementById(id);
         if (!field.value) {
             field.style.borderColor = "red";
+            if (!firstEmpty) firstEmpty = field;
             valid = false;
         } else {
             field.style.borderColor = "";
@@ -276,13 +246,8 @@ document.getElementById('aparForm').addEventListener('submit', async (event) => 
     }
 
     if (!valid) {
+        firstEmpty.focus();
         alert("Mohon isi semua field!");
-        return;
-    }
-
-    // Cek login Firebase
-    if (!auth.currentUser) {
-        alert("Anda belum login!");
         return;
     }
 
@@ -298,9 +263,8 @@ document.getElementById('aparForm').addEventListener('submit', async (event) => 
         expired: document.getElementById('expired').value,
         segelCondition: document.getElementById('segelCondition').value,
         nozzleCondition: document.getElementById('nozzleCondition').value,
-        r5Condition: document.getElementById('5rCondition').value,
-        status: document.getElementById('status').value,
-        createdBy: auth.currentUser.uid
+        "5rCondition": document.getElementById('5rCondition').value,
+        status: document.getElementById('status').value
     };
 
     set(ref(db, "aparData/" + newKey), data)
@@ -310,8 +274,3 @@ document.getElementById('aparForm').addEventListener('submit', async (event) => 
 </script>
 </body>
 </html>
-</body>
-</html>
-
-
-
