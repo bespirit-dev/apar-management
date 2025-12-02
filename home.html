@@ -748,6 +748,10 @@ document.getElementById("btnUpdateSave").onclick = async () => {
   loadDashboard();
 };
 
+// Auto reload dashboard setiap 10 menit (600.000 ms)
+setInterval(() => {
+  loadDashboard();
+}, 600000);
 
   function setActiveMenu(menuId) {
     const menuItems = document.querySelectorAll('.sidebar a');
@@ -1052,6 +1056,7 @@ document.getElementById("btnUpdateSave").onclick = async () => {
 
 </body>
 </html>
+
 
 
 
