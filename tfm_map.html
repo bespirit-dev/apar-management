@@ -1,7 +1,9 @@
 <!doctype html>
 <html lang="id">
 <head>
-  <link rel="icon" href="Logo.png" type="image/png">
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.29/dist/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Peta Sebaran APAR</title>
@@ -47,34 +49,34 @@
 
     /* FULLSCREEN MODE */
     .fullscreen {
-      position: fixed !important;
-      top: 0; 
-      left: 0;
-      width: 100vw !important;
-      height: 100vh !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      border-radius: 0 !important;
-      background: #000; /* biar rapi */
-      z-index: 9999 !important;
-      display: flex;
-      flex-direction: column;
-    }
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  background: #f4f6fb; /* ⬅️ BUKAN HITAM */
+  padding: 16px;
+  overflow: hidden;
+}
+
+.fullscreen .map-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
 
     .fullscreen .map-viewport {
-      position: relative;
-      width: 100% !important;
-      height: 100% !important;
-      padding-bottom: 0 !important;
+      aspect-ratio: unset;
+      height: 100%;
     }
+
 
     .fullscreen svg {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: contain; /* biar proporsi tidak rusak */
-    }
-
-
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+}
 
     .title h1 { margin: 0; font-size: 18px; color: #0f1720; }
     .subtitle { font-size: 13px; color: var(--muted); }
@@ -247,18 +249,233 @@
       padding: 12px;
       box-shadow: 0 6px 20px rgba(2,6,23,0.04);
     }
+
+    .btn-export-map {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  color: #212529;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.btn-export-map:hover {
+  background: #f8f9fa;
+  border-color: #ced4da;
+}
+
+.btn-export-map:active {
+  transform: scale(0.97);
+}
+
+.btn-export-map i,
+.btn-export-map img {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  color: #495057;
+}
+
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* STYLE EXPORT (samakan dengan yang lain) */
+.btn-export {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  height: 38px;
+  border: none;
+  background: #198754;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* STYLE EXPAND */
+.btn-expand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;          /* ⬅️ KUNCI SEJAJAR */
+  width: 38px;           /* kotak */
+  border: 1px solid #dee2e6;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.btn-expand:hover {
+  background: #f1f3f5;
+}
+
+/* EXPORT MODAL */
+.export-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.export-box {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 320px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.export-box h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.export-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.export-option:hover {
+  background: #f1f3f5;
+}
+
+.export-option input {
+  accent-color: #0d6efd;
+}
+
+.btn.primary {
+  background: #fff;
+  color: black;
+  border: 1px solid #333;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn.primary:hover {
+  background: #00FA9A;
+  transform: scale(1.05);
+}
+
+.btn.ghost {
+  background: #fff;
+  color: black;
+  border: 1px solid #333;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  align-self: flex-right;
+}
+
+.btn.ghost:hover {
+  background: #ff4d4d;
+  transform: scale(1.05);
+}
+  
+/* Marker */
+.svg-marker-dot { fill: #dc3545; } /* merah */
+.svg-marker-dotc{ fill: #0d6efd; }    /* biru */
+
+/* ===== LEGENDA ===== */
+.map-legend {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.15);
+  font-size: 13px;
+  z-index: 20;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.marker-dim {
+  opacity: 0.25;
+}
+
+.legend-item.active {
+  opacity: 1;
+}
+
+.legend-item.inactive {
+  opacity: 0.4;
+}
+
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  right: inherit;
+}
+
+.legend-dotc {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  right: inherit;
+}
+
+.legend-dot{ background: #dc3545; }
+.legend-dotc { background: #0d6efd; }
+
+.legend-item {
+  cursor: pointer;
+}
+
+.legend-item.inactive {
+  opacity: 0.4;
+}
+
   </style>
 </head>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <body>
   <div class="container">
-    <div class="topbar">
-     
+    <div class="topbar">  
       <div class="controls">
-        <button class="btn primary" id="exportBtn">Export</button>
-        <button class="btn ghost" id="expandBtn">⤢</button>
-
+        <button id="exportBtn" class="btn-export-map">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3v12m0 0l4-4m-4 4l-4-4"
+                  stroke="#495057" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5 21h14"
+                  stroke="#495057" stroke-width="2"
+                  stroke-linecap="round"/>
+          </svg>
+          Export
+        </button>
+         <button id="expandBtn" class="btn-expand" title="Expand Map">
+           ⛶
+         </button>
       </div>
     </div>
 
@@ -267,298 +484,360 @@
         <button id="closeFullscreen" class="close-btn">✕</button>
 
         <div class="map-viewport" id="mapViewport">
-          <svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg"
-               style="width:100%; height:auto; border-radius:16px; background:#eef1ff;">
-            
+         <svg id="aparMap"
+            viewBox="0 0 800 450"
+            xmlns="http://www.w3.org/2000/svg"
+            style="width:100%; height:auto; border-radius:16px; background:#eef1ff;">
+
             <!-- 🏗️ Gambar Denah -->
             <image href="Layout.jpg" x="0" y="0" width="800" height="450" />
 
             <!-- 🔴 Marker -->
-            <g class="marker-group" transform="translate(180,210)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 001" data-type="Powder" data-img="apar1.jpeg" data-location ="Pos 1" />
+            <g class="marker-group" data-type="powder" transform="translate(180,210)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 001" data-img="apar1.jpeg" data-location ="Pos 1" />
             </g>
-            <g class="marker-group" transform="translate(237,272.5)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 002" data-type="Powder" data-img="apar2.jpeg" data-location ="Dapur Mess" />
+            <g class="marker-group" data-type="powder" transform="translate(237,272.5)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 002"  data-img="apar2.jpeg" data-location ="Dapur Mess" />
             </g>
-            <g class="marker-group" transform="translate(263,266.5)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 003" data-type="Powder" data-img="apar3.jpeg" data-location ="Kantin 1" />
+            <g class="marker-group" data-type="powder" transform="translate(263,266.5)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 003"  data-img="apar3.jpeg" data-location ="Kantin 1" />
             </g>
-             <g class="marker-group" transform="translate(265,278)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 004" data-type="Powder" data-img="apar4.jpeg" data-location ="Kantin 2" />
+             <g class="marker-group" data-type="powder" transform="translate(265,278)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 004"  data-img="apar4.jpeg" data-location ="Kantin 2" />
             </g>
-            <g class="marker-group" transform="translate(288,245)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 005" data-type="Powder" data-img="apar5.jpeg" data-location ="Pos 2" />
+            <g class="marker-group" data-type="powder" transform="translate(288,245)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 005"  data-img="apar5.jpeg" data-location ="Pos 2" />
             </g>
-            <g class="marker-group" transform="translate(257,228)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 006" data-type="Powder" data-img="apar6.jpeg" data-location ="Kantor Utama" />
+            <g class="marker-group" data-type="powder" transform="translate(257,228)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 006"  data-img="apar6.jpeg" data-location ="Kantor Utama" />
             </g>
-            <g class="marker-group" transform="translate(250,220)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 007" data-type="Powder" data-img="apar7.jpeg" data-location ="Server Out" />
+            <g class="marker-group" data-type="powder" transform="translate(250,220)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 007"  data-img="apar7.jpeg" data-location ="Server Out" />
             </g>
-            <g class="marker-group" transform="translate(250,228)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 008" data-type="Powder" data-img="apar8.jpeg" data-location ="Genset Server" />
+            <g class="marker-group" data-type="powder" transform="translate(250,228)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 008"  data-img="apar8.jpeg" data-location ="Genset Server" />
             </g>
-            <g class="marker-group" transform="translate(222,222)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 009" data-type="Powder" data-img="apar9.jpeg" data-location ="Workshop Lama" />
+            <g class="marker-group" data-type="powder" transform="translate(222,222)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 009"  data-img="apar9.jpeg" data-location ="Workshop Lama" />
             </g>
-            <g class="marker-group" transform="translate(222,230)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 010" data-type="Powder" data-img="apar10.jpeg" data-location ="Cubicle" />
+            <g class="marker-group" data-type="powder" transform="translate(222,230)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 010"  data-img="apar10.jpeg" data-location ="Cubicle" />
             </g>
-            <g class="marker-group" transform="translate(203,200)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 011" data-type="Powder" data-img="apar11.jpeg" data-location ="Area B3" />
+            <g class="marker-group" data-type="powder" transform="translate(203,200)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 011"  data-img="apar11.jpeg" data-location ="Area B3" />
             </g>
-            <g class="marker-group" transform="translate(205,178)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 012" data-type="Powder" data-img="apar12.jpeg" data-location ="Vacuum Amoniak" />
+            <g class="marker-group" data-type="powder" transform="translate(205,178)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 012"  data-img="apar12.jpeg" data-location ="Vacuum Amoniak" />
             </g>
-            <g class="marker-group" transform="translate(202,167)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 013" data-type="Powder" data-img="apar13.jpeg" data-location="KA Supporting"/>
+            <g class="marker-group" data-type="powder" transform="translate(202,167)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 013"  data-img="apar13.jpeg" data-location="KA Supporting"/>
             </g>
-             <g class="marker-group" transform="translate(217,178)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 014" data-type="Powder" data-img="apar14.jpeg" data-location ="Coating L3" />
+             <g class="marker-group" data-type="powder" transform="translate(217,178)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 014"  data-img="apar14.jpeg" data-location ="Coating L3" />
             </g>
-            <g class="marker-group" transform="translate(240,178)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 015" data-type="CO2" data-img="apar15.jpeg" data-location ="Coating L3" />
+            <g class="marker-group" data-type="powder" transform="translate(240,178)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 015" data-img="apar15.jpeg" data-location ="Coating L3" />
             </g>
-            <g class="marker-group" transform="translate(270,178)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 016" data-type="Powder" data-img="apar16.jpeg" data-location ="Coating L3" />
+            <g class="marker-group" data-type="powder" transform="translate(270,178)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 016"  data-img="apar16.jpeg" data-location ="Coating L3" />
             </g>
-             <g class="marker-group" transform="translate(288,178)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 017" data-type="Powder" data-img="apar17.jpeg" data-location ="Dojo" />
+             <g class="marker-group" data-type="powder" transform="translate(288,178)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 017"  data-img="apar17.jpeg" data-location ="Dojo" />
             </g>
-            <g class="marker-group" transform="translate(290,188)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 018" data-type="Powder" data-img="apar18.jpeg" data-location ="RnD" />
+            <g class="marker-group" data-type="powder" transform="translate(270,188)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 018"  data-img="apar18.jpeg" data-location ="Lab QA" />
             </g>
-            <g class="marker-group" transform="translate(260,185)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 019" data-type="Powder" data-img="apar19.jpeg" data-location ="Pallet" />
+            <g class="marker-group" data-type="powder" transform="translate(260,185)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 019"  data-img="apar19.jpeg" data-location ="Pallet" />
             </g>
-            <g class="marker-group" transform="translate(280,198)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 020" data-type="Powder" data-img="apar20.jpeg" data-location ="GBJ" />
+            <g class="marker-group" data-type="powder" transform="translate(280,198)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 020"  data-img="apar20.jpeg" data-location ="GBJ" />
             </g>
-            <g class="marker-group" transform="translate(230,198)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 021" data-type="Powder" data-img="apar21.jpeg" data-location ="GBJ" />
+            <g class="marker-group" data-type="powder" transform="translate(230,198)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 021"  data-img="apar21.jpeg" data-location ="GBJ" />
             </g>
-            <g class="marker-group" transform="translate(256,170)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 022" data-type="Powder" data-img="apar22.jpeg" data-location ="Purette" />
+            <g class="marker-group" data-type="powder" transform="translate(256,170)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 022"  data-img="apar22.jpeg" data-location ="Purette" />
             </g>
-            <g class="marker-group" transform="translate(248,170)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 023" data-type="Powder" data-img="apar23.jpeg" data-location ="Purette" />
+            <g class="marker-group" data-type="powder" transform="translate(248,170)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 023"  data-img="apar23.jpeg" data-location ="Purette" />
             </g>
-            <g class="marker-group" transform="translate(240,170)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 024" data-type="Powder" data-img="apar24.jpeg" data-location ="Purette" />
+            <g class="marker-group" data-type="powder" transform="translate(240,170)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 024"  data-img="apar24.jpeg" data-location ="Purette" />
             </g>
-            <g class="marker-group" transform="translate(232,170)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 025" data-type="Powder" data-img="apar25.jpeg" data-location ="Purette" />
+            <g class="marker-group" data-type="powder" transform="translate(232,170)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 025"  data-img="apar25.jpeg" data-location ="Purette" />
             </g>
-            <g class="marker-group" transform="translate(224,170)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 026" data-type="Powder" data-img="apar26.jpeg" data-location ="Purette" />
+            <g class="marker-group" data-type="powder" transform="translate(224,170)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 026"  data-img="apar26.jpeg" data-location ="Purette" />
             </g>
-            <g class="marker-group" transform="translate(207,151)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 027" data-type="Powder" data-img="apar27.jpeg" data-location ="Gudang Klump" />
+            <g class="marker-group" data-type="powder" transform="translate(207,151)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 027"  data-img="apar27.jpeg" data-location ="Gudang Klump" />
             </g>
-            <g class="marker-group" transform="translate(232,162)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 028" data-type="Powder" data-img="apar28.jpeg" data-location ="PQ Dempul" />
+            <g class="marker-group" data-type="powder" transform="translate(232,162)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 028"  data-img="apar28.jpeg" data-location ="PQ Dempul" />
             </g>
-            <g class="marker-group" transform="translate(248,162)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 029" data-type="Powder" data-img="apar29.jpeg" data-location ="PQ Sortir" />
+            <g class="marker-group" data-type="powder" transform="translate(248,162)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 029"  data-img="apar29.jpeg" data-location ="PQ Sortir" />
             </g>
-            <g class="marker-group" transform="translate(238,150)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 030" data-type="Powder" data-img="apar30.jpeg" data-location ="Torwegee" />
+            <g class="marker-group" data-type="powder" transform="translate(238,150)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 030"  data-img="apar30.jpeg" data-location ="Torwegee" />
             </g>
-            <g class="marker-group" transform="translate(235,152)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 031" data-type="Powder" data-img="apar31.jpeg" data-location ="PQ Profiling" />
+            <g class="marker-group" data-type="powder" transform="translate(235,152)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 031"  data-img="apar31.jpeg" data-location ="PQ Profiling" />
             </g>
-            <g class="marker-group" transform="translate(228,152)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 032" data-type="Powder" data-img="apar32.jpeg" data-location ="PQ Homag 1" />
+            <g class="marker-group" data-type="powder" transform="translate(228,152)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 032"  data-img="apar32.jpeg" data-location ="PQ Homag 1" />
             </g>
-            <g class="marker-group" transform="translate(230,155)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 033" data-type="Powder" data-img="apar33.jpeg" data-location ="PQ Homag 2" />
+            <g class="marker-group" data-type="powder" transform="translate(230,155)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 033"  data-img="apar33.jpeg" data-location ="PQ Homag 2" />
             </g>
-            <g class="marker-group" transform="translate(240,160)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 034" data-type="Powder" data-img="apar34.jpeg" data-location ="PowerMATT" />
+            <g class="marker-group" data-type="powder" transform="translate(240,160)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 034"  data-img="apar34.jpeg" data-location ="PowerMATT" />
             </g>
-            <g class="marker-group" transform="translate(210,130)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 035" data-type="Powder" data-img="apar35.jpeg" data-location ="HP 3" />
+            <g class="marker-group" data-type="powder" transform="translate(210,130)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 035"  data-img="apar35.jpeg" data-location ="HP 3" />
             </g>
-            <g class="marker-group" transform="translate(210,145)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 036" data-type="Powder" data-img="apar36.jpeg" data-location ="Bejana 1" />
+            <g class="marker-group" data-type="powder" transform="translate(210,145)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 036"  data-img="apar36.jpeg" data-location ="Bejana 1" />
             </g>
-             <g class="marker-group" transform="translate(225,135)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 037" data-type="Powder" data-img="apar37.jpeg" data-location ="HP 2-3" />
+             <g class="marker-group" data-type="powder" transform="translate(225,135)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 037"  data-img="apar37.jpeg" data-location ="HP 2-3" />
             </g>
-            <g class="marker-group" transform="translate(255,135)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 038" data-type="Powder" data-img="apar38.jpeg" data-location ="Sander Butferring"/>
+            <g class="marker-group" data-type="powder" transform="translate(255,135)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 038"  data-img="apar38.jpeg" data-location ="Sander Butferring"/>
             </g>
-            <g class="marker-group" transform="translate(255,150)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 039" data-type="Powder" data-img="apar39.jpeg" data-location ="Bejana 2"/>
+            <g class="marker-group" data-type="powder" transform="translate(255,150)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 039"  data-img="apar39.jpeg" data-location ="Bejana 2"/>
             </g>
-             <g class="marker-group" transform="translate(265,150)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 040" data-type="Powder" data-img="apar40.jpeg" data-location ="Sander PQ"/>
+             <g class="marker-group" data-type="powder" transform="translate(265,150)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 040"  data-img="apar40.jpeg" data-location ="Sander PQ"/>
             </g>
-             <g class="marker-group" transform="translate(265,135)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 041" data-type="Powder" data-img="apar41.jpeg" data-location ="White Wash"/>
+             <g class="marker-group" data-type="powder" transform="translate(265,135)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 041"  data-img="apar41.jpeg" data-location ="White Wash"/>
             </g>
-             <g class="marker-group" transform="translate(255,117)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 042" data-type="Powder" data-img="apar42.jpeg" data-location ="KUPER"/>
+             <g class="marker-group" data-type="powder" transform="translate(255,117)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 042"  data-img="apar42.jpeg" data-location ="KUPER"/>
             </g>
-            <g class="marker-group" transform="translate(277,120)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 043" data-type="Powder" data-img="apar43.jpeg" data-location ="DP"/>
+            <g class="marker-group" data-type="powder" transform="translate(277,120)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 043"  data-img="apar43.jpeg" data-location ="DP"/>
             </g>
-            <g class="marker-group" transform="translate(306.5,177)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 044" data-type="Powder" data-img="apar44.jpeg" data-location ="CR"/>
+            <g class="marker-group" data-type="powder" transform="translate(306.5,177)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 044"  data-img="apar44.jpeg" data-location ="CR"/>
             </g>
-            <g class="marker-group" transform="translate(306.5,157)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 045" data-type="Powder" data-img="apar45.jpeg" data-location ="CR"/>
+            <g class="marker-group" data-type="powder" transform="translate(306.5,157)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 045"  data-img="apar45.jpeg" data-location ="CR"/>
             </g>
-            <g class="marker-group" transform="translate(306.5,127)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 046" data-type="Powder" data-img="apar46.jpeg" data-location ="CR"/>
+            <g class="marker-group" data-type="powder" transform="translate(306.5,127)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 046"  data-img="apar46.jpeg" data-location ="CR"/>
             </g>
-             <g class="marker-group" transform="translate(323,137)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 047" data-type="Powder" data-img="apar47.jpeg" data-location ="KD HDS"/>
+             <g class="marker-group" data-type="powder" transform="translate(323,137)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 047"  data-img="apar47.jpeg" data-location ="KD HDS"/>
             </g>
-            <g class="marker-group" transform="translate(323,187)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 048" data-type="Powder" data-img="apar48.jpeg" data-location ="KD HDS"/>
+            <g class="marker-group" data-type="powder" transform="translate(323,187)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 048"  data-img="apar48.jpeg" data-location ="KD HDS"/>
             </g>
-            <g class="marker-group" transform="translate(308,205)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 049" data-type="Powder" data-img="apar49.jpeg" data-location ="Warehouse"/>
+            <g class="marker-group" data-type="powder" transform="translate(308,205)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 049"  data-img="apar49.jpeg" data-location ="Warehouse"/>
             </g>
-            <g class="marker-group" transform="translate(305,197)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 050" data-type="Powder" data-img="apar50.jpeg" data-location ="Warehouse"/>
+            <g class="marker-group" data-type="powder" transform="translate(305,197)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 050"  data-img="apar50.jpeg" data-location ="Warehouse"/>
             </g>
-            <g class="marker-group" transform="translate(299,185)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 051" data-type="Powder" data-img="apar51.jpeg" data-location ="Warehouse"/>
+            <g class="marker-group" data-type="powder" transform="translate(299,185)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 051"  data-img="apar51.jpeg" data-location ="Warehouse"/>
             </g>
-            <g class="marker-group" transform="translate(300,205)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 052" data-type="Powder" data-img="apar52.jpeg" data-location ="Warehouse"/>
+            <g class="marker-group" data-type="powder" transform="translate(300,205)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 052"  data-img="apar52.jpeg" data-location ="Warehouse"/>
             </g>
-            <g class="marker-group" transform="translate(298,223)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 053" data-type="Powder" data-img="apar53.jpeg" data-location ="Compressor"/>
+            <g class="marker-group" data-type="powder" transform="translate(298,223)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 053"  data-img="apar53.jpeg" data-location ="Compressor"/>
             </g>
-            <g class="marker-group" transform="translate(298,230)">
+            <g class="marker-group" data-type="CO2" transform="translate(298,230)">
               <circle class="svg-marker-dotc" r="4" data-name="APAR 054" data-type="CO2" data-img="apar54.jpeg" data-location ="Power House 1"/>
             </g>
-            <g class="marker-group" transform="translate(290,230)">
+            <g class="marker-group" data-type="CO2" transform="translate(290,230)">
               <circle class="svg-marker-dotc" r="4" data-name="APAR 055" data-type="CO2" data-img="apar55.jpeg" data-location ="Power House 1"/>
             </g>
-            <g class="marker-group" transform="translate(298,217)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 056" data-type="Powder" data-img="apar56.jpeg" data-location ="Compressor"/>
+            <g class="marker-group" data-type="powder" transform="translate(298,217)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 056"  data-img="apar56.jpeg" data-location ="Compressor"/>
             </g>
-             <g class="marker-group" transform="translate(315,220)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 057" data-type="Powder" data-img="apar57.jpeg" data-location ="HTO Depan"/>
+             <g class="marker-group" data-type="powder" transform="translate(315,220)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 057"  data-img="apar57.jpeg" data-location ="HTO Depan"/>
             </g>
-             <g class="marker-group" transform="translate(335,127)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 058" data-type="Powder" data-img="apar58.jpeg" data-location ="Engineering"/>
+             <g class="marker-group" data-type="powder" transform="translate(335,127)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 058"  data-img="apar58.jpeg" data-location ="Engineering"/>
             </g>
-             <g class="marker-group" transform="translate(333,120)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 059" data-type="Powder" data-img="apar59.jpeg" data-location ="Maintenance"/>
+             <g class="marker-group" data-type="powder" transform="translate(333,120)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 059"  data-img="apar59.jpeg" data-location ="Maintenance"/>
             </g>
-            <g class="marker-group" transform="translate(352,135)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 060" data-type="Powder" data-img="apar60.jpeg" data-location ="Prep L2"/>
+            <g class="marker-group" data-type="powder" transform="translate(352,135)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 060"  data-img="apar60.jpeg" data-location ="Prep L2"/>
             </g>
-            <g class="marker-group" transform="translate(362,135)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 061" data-type="Powder" data-img="apar61.jpeg" data-location ="Tagliabue"/>
+            <g class="marker-group" data-type="powder" transform="translate(362,135)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 061"  data-img="apar61.jpeg" data-location ="Tagliabue"/>
             </g>
-            <g class="marker-group" transform="translate(380,120)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 062" data-type="Powder" data-img="apar62.jpeg" data-location ="Chelasci"/>
+            <g class="marker-group" data-type="powder" transform="translate(380,120)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 062"  data-img="apar62.jpeg" data-location ="Chelasci"/>
             </g>
-            <g class="marker-group" transform="translate(364,120)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 063" data-type="Powder" data-img="apar63.jpeg" data-location ="Moulding Prep"/>
+            <g class="marker-group" data-type="powder" transform="translate(364,120)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 063"  data-img="apar63.jpeg" data-location ="Moulding Prep"/>
             </g>
-            <g class="marker-group" transform="translate(395,125)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 064" data-type="Powder" data-img="apar64.jpeg" data-location ="Hydrant 1"/>
+            <g class="marker-group" data-type="powder" transform="translate(395,125)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 064"  data-img="apar64.jpeg" data-location ="Hydrant 1"/>
             </g>
-            <g class="marker-group" transform="translate(375,135)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 065" data-type="Powder" data-img="apar65.jpeg" data-location ="Split lamella"/>
+            <g class="marker-group" data-type="powder" transform="translate(375,135)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 065"  data-img="apar65.jpeg" data-location ="Split lamella"/>
             </g>
-            <g class="marker-group" transform="translate(385,145)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 066" data-type="Powder" data-img="apar66.jpeg" data-location ="DSG"/>
+            <g class="marker-group" data-type="powder" transform="translate(385,145)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 066"  data-img="apar66.jpeg" data-location ="DSG"/>
             </g>
-            <g class="marker-group" transform="translate(370,160)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 067" data-type="Powder" data-img="apar67.jpeg" data-location ="LeaderMAC"/>
+            <g class="marker-group" data-type="powder" transform="translate(370,160)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 067"  data-img="apar67.jpeg" data-location ="LeaderMAC"/>
             </g>
-            <g class="marker-group" transform="translate(362,143)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 068" data-type="Powder" data-img="apar68.jpeg" data-location ="Finger Joint"/>
+            <g class="marker-group" data-type="powder" transform="translate(362,143)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 068"  data-img="apar68.jpeg" data-location ="Finger Joint"/>
             </g>
-            <g class="marker-group" transform="translate(372,151)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 069" data-type="Powder" data-img="apar69.jpeg" data-location ="HP Comp"/>
+            <g class="marker-group" data-type="powder" transform="translate(372,151)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 069"  data-img="apar69.jpeg" data-location ="HP Comp"/>
             </g>
-            <g class="marker-group" transform="translate(352,151)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 070" data-type="Powder" data-img="apar70.jpeg" data-location ="Sander Prep"/>
+            <g class="marker-group" data-type="powder" transform="translate(352,151)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 070"  data-img="apar70.jpeg" data-location ="Sander Prep"/>
             </g>
-            <g class="marker-group" transform="translate(356,166)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 071" data-type="Powder" data-img="apar71.jpeg" data-location ="Prep L2"/>
+            <g class="marker-group" data-type="powder" transform="translate(356,166)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 071"  data-img="apar71.jpeg" data-location ="Prep L2"/>
             </g>
-            <g class="marker-group" transform="translate(373,163)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 072" data-type="Powder" data-img="apar72.jpeg" data-location ="Glue 9 Ft"/>
+            <g class="marker-group" data-type="powder" transform="translate(373,163)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 072"  data-img="apar72.jpeg" data-location ="Glue 9 Ft"/>
             </g>
-            <g class="marker-group" transform="translate(375,175)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 073" data-type="Powder" data-img="apar73.jpeg" data-location ="HTO Prep"/>
+            <g class="marker-group" data-type="powder" transform="translate(375,175)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 073"  data-img="apar73.jpeg" data-location ="HTO Prep"/>
             </g>
-            <g class="marker-group" transform="translate(385,165)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 074" data-type="Powder" data-img="apar74.jpeg" data-location ="PPAD 12 Greecon"/>
+            <g class="marker-group" data-type="powder" transform="translate(385,165)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 074"  data-img="apar74.jpeg" data-location ="PPAD 12 Greecon"/>
             </g>
-             <g class="marker-group" transform="translate(398,135)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 075" data-type="Powder" data-img="apar75.jpeg" data-location ="Maspell"/>
+             <g class="marker-group" data-type="powder" transform="translate(398,135)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 075"  data-img="apar75.jpeg" data-location ="Maspell"/>
             </g>
-            <g class="marker-group" transform="translate(461,135)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 076" data-type="Powder" data-img="apar76.jpeg" data-location ="Ex Substrate" />
+            <g class="marker-group" data-type="powder" transform="translate(461,135)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 076"  data-img="apar76.jpeg" data-location ="Ex Substrate" />
             </g>
-            <g class="marker-group" transform="translate(496,131)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 077" data-type="Powder" data-img="apar77.jpeg" data-location ="Hydrant 2" />
+            <g class="marker-group" data-type="powder" transform="translate(496,131)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 077"  data-img="apar77.jpeg" data-location ="Hydrant 2" />
             </g>
-             <g class="marker-group" transform="translate(500,151)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 078" data-type="Powder" data-img="apar78.jpeg" data-location="Loading 3" />
+             <g class="marker-group" data-type="powder" transform="translate(500,151)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 078"  data-img="apar78.jpeg" data-location="Loading 3" />
             </g>
-            <g class="marker-group" transform="translate(515,151)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 079" data-type="Powder" data-img="apar79.jpeg" data-location="GBB A" />
+            <g class="marker-group" data-type="powder" transform="translate(515,151)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 079"  data-img="apar79.jpeg" data-location="GBB A" />
             </g>
-            <g class="marker-group" transform="translate(515,162.5)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 080" data-type="Powder" data-img="apar80.jpeg" data-location="GBB B" />
+             <g class="marker-group" data-type="powder" transform="translate(290,188)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 081"  data-img="apar81.jpeg" data-location ="RnD" />
             </g>
-            <g class="marker-group" transform="translate(555,140)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 081" data-type="Powder" data-img="apar81.jpeg" data-location="GBB A" />
+            <g class="marker-group" data-type="powder" transform="translate(555,140)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 082"  data-img="apar82.jpeg" data-location="HTO 1" />
             </g>
-            <g class="marker-group" transform="translate(575,160)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 082" data-type="Powder" data-img="apar82.jpeg" data-location="GBB B" />
+            <g class="marker-group" data-type="powder" transform="translate(555,140)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 083"  data-img="apar83.jpeg" data-location="GBB A" />
             </g>
-            <g class="marker-group" transform="translate(575,177)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 083" data-type="Powder" data-img="apar83.jpeg" data-location="GBB C" />
+            <g class="marker-group" data-type="powder" transform="translate(515,162.5)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 084"  data-img="apar84.jpeg" data-location="GBB B" />
             </g>
-             <g class="marker-group" transform="translate(570,182)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 084" data-type="Powder" data-img="apar84.jpeg" data-location="Sport Center" />
+            <g class="marker-group" data-type="powder" transform="translate(575,160)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 085"  data-img="apar85.jpeg" data-location="GBB B" />
             </g>
-            <g class="marker-group" transform="translate(530,205)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 085" data-type="Powder" data-img="apar85.jpeg" data-location="Tirtoredjo" />
+            <g class="marker-group" data-type="powder" transform="translate(575,177)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 086"  data-img="apar86.jpeg" data-location="GBB C" />
             </g>
-            <g class="marker-group" transform="translate(500,200)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 086" data-type="Powder" data-img="apar86.jpeg" data-location="Power House 2" />
+            <g class="marker-group" data-type="powder" transform="translate(515,190)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 087"  data-img="apar87.jpeg" data-location="GBB D" />
             </g>
-            <g class="marker-group" transform="translate(475,190)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 087" data-type="Powder" data-img="apar87.jpeg" data-location="Eks Sawmill" />
+             <g class="marker-group" data-type="powder" transform="translate(570,182)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 088"  data-img="apar88.jpeg" data-location="Sport Center" />
             </g>
-            <g class="marker-group" transform="translate(465,181)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 088" data-type="Powder" data-img="apar88.jpeg" data-location="Eks Sawmill" />
+            <g class="marker-group" data-type="powder" transform="translate(530,205)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 089"  data-img="apar89.jpeg" data-location="Tirtoredjo" />
             </g>
-            <g class="marker-group" transform="translate(450,190)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 089" data-type="Powder" data-img="apar89.jpeg" data-location="Eks Sawmill" />
-            </g>  
-            <g class="marker-group" transform="translate(450,200)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 090" data-type="Powder" data-img="apar90.jpeg" data-location="Drum Dryer" />
+            <g class="marker-group" data-type="powder" transform="translate(500,200)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 090"  data-img="apar90.jpeg" data-location="Power House 2" />
             </g>
-            <g class="marker-group" transform="translate(440,200)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 091" data-type="Powder" data-img="apar91.jpeg" data-location="Drum Dryer" />
+            <g class="marker-group" data-type="CO2" transform="translate(495,200)">
+              <circle class="svg-marker-dotc" r="4" data-name="APAR 091" data-type="CO2" data-img="apar91.jpeg" data-location="Power House 2" />
             </g>
-            <g class="marker-group" transform="translate(422,215)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 092" data-type="Powder" data-img="apar92.jpeg" data-location="Pellet" />
+            <g class="marker-group" data-type="powder" transform="translate(488,195)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 092"  data-img="apar92.jpeg" data-location="KD Sesione 24" />
+            </g>   
+            <g class="marker-group" data-type="powder" transform="translate(475,190)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 093"  data-img="apar93.jpeg" data-location="Kantor KD" />
             </g>
-            <g class="marker-group" transform="translate(400,215)">
-              <circle class="svg-marker-dot" r="4" data-name="APAR 093" data-type="Powder" data-img="apar93.jpeg" data-location="Pellet" />
+            <g class="marker-group" data-type="powder" transform="translate(465,181)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 094"  data-img="apar94.jpeg" data-location="Ex Sawmill" />
             </g>
-            
-            </svg>
-        </div>
-      </div>
+            <g class="marker-group" data-type="powder" transform="translate(450,200)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 095"  data-img="apar95.jpeg" data-location="Drum Dryer" />
+            </g>
+            <g class="marker-group" data-type="powder" transform="translate(440,200)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 096"  data-img="apar96.jpeg" data-location="Drum Dryer" />
+            </g>
+            <g class="marker-group" data-type="powder" transform="translate(422,215)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 097"  data-img="apar97.jpeg" data-location="Pellet" />
+            </g>
+            <g class="marker-group" data-type="powder" transform="translate(411,215)">
+              <circle class="svg-marker-dot" r="4" data-name="APAR 098"  data-img="apar98.jpeg" data-location="Pellet" />
+            </g>
+            <!-- LEGEND -->
+              <g id="map-legend" transform="translate(560,40)">
 
+                <!-- Powder -->
+                <g class="legend-item" data-type="powder" cursor="pointer">
+                  <circle cx="15" cy="20" r="5" fill="#dc3545"/>
+                  <text x="30" y="24" font-size="10" fill="#212529">Powder</text>
+                </g>
+
+                <!-- CO2 -->
+                <g class="legend-item" data-type="CO2" cursor="pointer">
+                  <circle cx="15" cy="40" r="5" fill="#0d6efd"/>
+                  <text x="30" y="44" font-size="10" fill="#212529">CO₂</text>
+                </g>
+             </g>
+          </svg>
+        </div>
+        
   <div id="tooltip" class="tooltip"></div>
+  <!-- EXPORT MODAL -->
+<div id="exportModal" class="export-modal">
+  <div class="export-box">
+    <h3>Choose Export Format</h3>
+
+    <label class="export-option">
+  <input type="radio" name="exportType" value="pdf" checked>
+  <span class="icon">
+    <!-- PDF ICON -->
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="#dc3545">
+      <path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+      <path fill="#fff" d="M8 14h2v6H8zm4 0h2.5a2.5 2.5 0 0 0 0-5H12v5zm2.5-3a.5.5 0 0 1 0 1H14v-1z"/>
+    </svg>
+  </span>
+  PDF 
+</label>
+
+<label class="export-option">
+  <input type="radio" name="exportType" value="excel">
+  <span class="icon">
+    <!-- EXCEL ICON -->
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="#198754">
+      <path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+      <path fill="#fff" d="M9 10l2 4-2 4h2l1-2 1 2h2l-2-4 2-4h-2l-1 2-1-2z"/>
+    </svg>
+  </span>
+  Excel 
+</label>
+    <div class="export-actions">
+      <button id="exportOk" class="btn primary">OK</button>
+      <button id="exportCancel" class="btn ghost">Cancel</button>
+    </div>
+  </div>
+</div>
+
 
   <script>
     const tooltip = document.getElementById('tooltip');
@@ -621,65 +900,265 @@
     });
 
     // 🧾 Export & Download
-    document.getElementById('exportBtn').addEventListener('click', () => {
-      const data = Array.from(markers).map(m => {
-        const t = m.parentElement.getAttribute('transform');
-        let coords = [0,0];
-        if (t) {
-          const match = t.match(/translate\(([\d.]+),([\d.]+)\)/);
-          if (match) coords = [parseFloat(match[1]), parseFloat(match[2])];
-        }
-        return { name: m.dataset.name, type: m.dataset.type, x: coords[0], y: coords[1], img: m.dataset.img };
-      });
-      const json = JSON.stringify(data, null, 2);
-      let exportArea = document.getElementById('exportArea');
-      if (!exportArea) {
-        const ta = document.createElement('textarea');
-        ta.id = 'exportArea';
-        ta.style.width = '100%';
-        ta.style.height = '120px';
-        ta.value = json;
-        sideInfo.appendChild(ta);
-      } else exportArea.value = json;
-    });
+    const { jsPDF } = window.jspdf;
+    const exportBtn = document.getElementById("exportBtn");
+    const mapViewport = document.getElementById("mapViewport");
 
-      // 🔍 Fullscreen Toggle
+    function getAparTableData() {
+      const dots = document.querySelectorAll(".svg-marker-dot, .svg-marker-dotc");
+      return Array.from(dots).map((m, i) => ({
+        no: m.dataset.name || `APAR ${i+1}`,
+        location: m.dataset.location || "-"
+      }));
+    }
 
-    const expandBtn = document.getElementById("expandBtn");
-      const closeBtn = document.getElementById("closeFullscreen");
-      const mapCard = document.querySelector(".map-card");
+    async function exportMapPDF() {
+  const svg = document.getElementById("aparMap");
+  if (!svg) {
+    alert("Map tidak ditemukan");
+    return;
+  }
 
-     expandBtn.addEventListener("click", () => {
-      mapCard.classList.add("fullscreen");
-    });
+  // Clone SVG
+  const clone = svg.cloneNode(true);
 
-    closeBtn.addEventListener("click", () => {
-      mapCard.classList.remove("fullscreen");
-    });
-
-    const exportPngBtn = document.getElementById("exportPngBtn");
-const mapViewport = document.getElementById("mapViewport");
-
-exportPngBtn.addEventListener("click", () => {
-  html2canvas(mapViewport, {
-    backgroundColor: null, // jika ingin background transparan
-    scale: 2               // resolusi lebih tinggi
-  }).then(canvas => {
-    const link = document.createElement("a");
-    link.download = "denah_apar.png";
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  });
+// FORCE WARNA MARKER
+clone.querySelectorAll("circle.svg-marker-dot").forEach(c => {
+  c.setAttribute("fill", "#dc3545"); // merah APAR
 });
 
+clone.querySelectorAll("circle.svg-marker-dotc").forEach(c => {
+  c.setAttribute("fill", "#0d6efd"); // biru (kalau ada)
+});
 
+clone.querySelectorAll("circle.svg-marker-dot").forEach(c => {
+  c.setAttribute("fill", "#dc3545");     // warna marker
+  c.setAttribute("stroke", "none");      // ⬅️ MATIKAN HITAM
+  c.setAttribute("stroke-width", "0");
+});
 
+  // Cari image denah
+  const imgNode = clone.querySelector("image");
+  if (imgNode) {
+    const href = imgNode.getAttribute("href");
 
+    // Load image lalu convert ke base64
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = href;
+
+    await new Promise(resolve => {
+      img.onload = resolve;
+    });
+
+    const c = document.createElement("canvas");
+    c.width = img.width;
+    c.height = img.height;
+    const ctx = c.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+
+    const base64 = c.toDataURL("image/jpeg");
+    imgNode.setAttribute("href", base64);
+  }
+
+  // Set ukuran export fix
+  clone.setAttribute("width", "1200");
+  clone.setAttribute("height", "675");
+
+  const serializer = new XMLSerializer();
+  const svgStr = serializer.serializeToString(clone);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 1200;
+  canvas.height = 675;
+  const ctx = canvas.getContext("2d");
+
+  const img = new Image();
+  img.onload = () => {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+
+    const pdf = new jspdf.jsPDF("landscape", "pt", "a4");
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const scale = Math.min(
+      pageWidth / canvas.width,
+      pageHeight / canvas.height
+    );
+
+    const w = canvas.width * scale;
+    const h = canvas.height * scale;
+
+    pdf.addImage(
+      canvas.toDataURL("image/png"),
+      "PNG",
+      (pageWidth - w) / 2,
+      (pageHeight - h) / 2,
+      w,
+      h
+    );
+
+    const tanggal = new Date().toISOString().slice(0, 10);
+    pdf.save(`Denah_APAR_${tanggal}.pdf`);
+  };
+
+  img.src =
+    "data:image/svg+xml;base64," +
+    btoa(unescape(encodeURIComponent(svgStr)));
+
+    // === FORCE WARNA MARKER AGAR TIDAK HITAM ===
+// === INLINE WARNA MARKER (WAJIB) ===
+clone.querySelectorAll("circle").forEach(c => {
+
+  if (c.classList.contains("svg-marker-dot")) {
+    c.setAttribute("fill", "#ff2d2d");
+    c.setAttribute("stroke", "#ff2d2d");
+    c.setAttribute("opacity", "0.9");
+  }
+
+  if (c.classList.contains("svg-marker-dotc")) {
+    c.setAttribute("fill", "#0033EE");
+    c.setAttribute("stroke", "#0033EE");
+    c.setAttribute("opacity", "0.9");
+  }
+
+  // Radar effect
+  if (
+    c.parentElement?.classList.contains("radar-group")
+  ) {
+    c.setAttribute("stroke", "#ff2d2d");
+    c.setAttribute("fill", "none");
+  }
+
+  if (
+    c.parentElement?.classList.contains("radars-groupc")
+  ) {
+    c.setAttribute("stroke", "#0033EE");
+    c.setAttribute("fill", "none");
+  }
+});
+}
+
+function exportExcel() {
+  const tanggal = new Date().toISOString().slice(0,10);
+  const data = getAparTableData();
+
+  const ws = XLSX.utils.json_to_sheet(data, {
+    header: ["no", "location"]
+  });
+
+  ws["A1"].v = "No APAR";
+  ws["B1"].v = "Location";
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "APAR Map");
+
+  XLSX.writeFile(wb, `Peta_APAR_${tanggal}.xlsx`);
+}
+
+ const exportModal = document.getElementById("exportModal");
+const exportOk = document.getElementById("exportOk");
+const exportCancel = document.getElementById("exportCancel");
+
+exportBtn.addEventListener("click", () => {
+  exportModal.style.display = "flex";
+});
+
+exportCancel.addEventListener("click", () => {
+  exportModal.style.display = "none"; // ❌ batal total
+});
+
+exportOk.addEventListener("click", () => {
+  const selected = document.querySelector(
+    'input[name="exportType"]:checked'
+  ).value;
+
+  exportModal.style.display = "none";
+
+  if (selected === "pdf") {
+    exportMapPDF();
+  } else if (selected === "excel") {
+    exportExcel();
+  }
+});
+
+  const expandBtn = document.getElementById("expandBtn");
+const closeBtn = document.getElementById("closeFullscreen");
+const container = document.querySelector(".container");
+
+expandBtn.addEventListener("click", () => {
+  container.classList.add("fullscreen");
+});
+
+closeBtn.addEventListener("click", () => {
+  container.classList.remove("fullscreen");
+});
+// Keyboard shortcut
+document.addEventListener("keydown", (e) => {
+  if (exportModal.style.display !== "flex") return;
+
+  if (e.key === "Escape") {
+    exportModal.style.display = "none"; // Cancel
+  }
+
+  if (e.key === "Enter") {
+    exportOk.click(); // OK
+  }
+});
+
+function positionLegend(svg) {
+  const vb = svg.viewBox.baseVal;
+  const legend = svg.getElementById("map-legend");
+
+  legend.setAttribute(
+    "transform",
+    `translate(${vb.width - 140}, ${vb.height - 80})`
+  );
+}
+
+const svg = document.querySelector("#mapSVG");
+const activeType = {
+  powder: true,
+  CO2: true
+};
+
+let activeFilter = null;
+
+document.querySelectorAll("#map-legend .legend-item").forEach(legend => {
+  legend.addEventListener("click", () => {
+    const type = legend.dataset.type;
+
+    // RESET
+    if (activeFilter === type) {
+      activeFilter = null;
+
+      document.querySelectorAll(".marker-group")
+        .forEach(m => m.classList.remove("marker-dim"));
+
+      document.querySelectorAll(".legend-item")
+        .forEach(l => l.classList.remove("active", "inactive"));
+
+      return;
+    }
+
+    // SET FILTER
+    activeFilter = type;
+
+    document.querySelectorAll(".marker-group").forEach(m => {
+      m.classList.toggle("marker-dim", m.dataset.type !== type);
+    });
+
+    document.querySelectorAll(".legend-item").forEach(l => {
+      l.classList.toggle("active", l.dataset.type === type);
+      l.classList.toggle("inactive", l.dataset.type !== type);
+    });
+  });
+});
 
   </script>
 </body>
 </html>
-
-
-
 
