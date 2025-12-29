@@ -97,6 +97,23 @@
 </style>
 </head>
 <body>
+  <div class="admin-header">
+  <img src="secure.png" class="admin-logo">
+  <div class="admin-title">ADMIN PANEL</div>
+  <button id="openNotify" style="
+    margin-left:auto;
+    background:#0cd8b6;
+    color:#fff;
+    border:none;
+    padding:10px 16px;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;">
+    <i class="bi bi-envelope-paper-fill"></i> Notifikasi Fitur
+  </button>
+</div>
+
+
 
 <h2>📋 Daftar Permintaan Reset Password</h2>
 <table>
@@ -126,6 +143,26 @@
     </div>
   </div>
 </div>
+
+<div id="notifyModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeNotify">&times;</span>
+    <div class="icon"><i class="bi bi-megaphone-fill"></i></div>
+    <h3>Pemberitahuan Update Fitur</h3>
+
+    <input type="text" id="notifyTitle" placeholder="Judul update fitur">
+    <textarea id="notifyMessage" placeholder="Deskripsi fitur baru"
+      style="width:100%;height:100px;padding:10px;border-radius:8px;border:1px solid #ccc;"></textarea>
+
+    <input type="text" id="targetNPK" placeholder="NPK (kosongkan = semua user)">
+
+    <div class="modal-actions">
+      <button id="sendNotify">Kirim</button>
+      <button id="cancelNotify">Batal</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- EmailJS -->
 <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
@@ -269,6 +306,61 @@ if(userSnap.exists()){
   };
 
   loadRequests();
+// === MODAL NOTIFIKASI ===
+const notifyModal = document.getElementById("notifyModal");
+
+document.getElementById("openNotify").onclick = () => {
+  notifyModal.style.display = "flex";
+};
+
+document.getElementById("closeNotify").onclick =
+document.getElementById("cancelNotify").onclick = () => {
+  notifyModal.style.display = "none";
+};
+
+// === KIRIM EMAIL NOTIFIKASI ===
+document.getElementById("sendNotify").onclick = async () => {
+  const title = document.getElementById("notifyTitle").value.trim();
+  const message = document.getElementById("notifyMessage").value.trim();
+  const targetNPK = document.getElementById("targetNPK").value.trim();
+
+  if (!title || !message) {
+    alert(" Judul dan deskripsi wajib diisi!");
+    return;
+  }
+
+  const usersSnap = await get(ref(db, "users"));
+  if (!usersSnap.exists()) {
+    alert(" Data user tidak ditemukan.");
+    return;
+  }
+
+  let sentCount = 0;
+  const users = usersSnap.val();
+
+  for (let npk in users) {
+    if (targetNPK && npk !== targetNPK) continue;
+
+    if (users[npk].email) {
+      await emailjs.send("service_uix6wsl", "template_wcclvhh", {
+        to_email: users[npk].email,
+        subject: title,
+        message: message,
+        username: users[npk].username || "-",
+      });
+      sentCount++;
+    }
+  }
+
+  alert(`Notifikasi berhasil dikirim ke ${sentCount} pengguna.`);
+  notifyModal.style.display = "none";
+
+  document.getElementById("notifyTitle").value = "";
+  document.getElementById("notifyMessage").value = "";
+  document.getElementById("targetNPK").value = "";
+};
+
+
 </script>
 </body>
 </html>
