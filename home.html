@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
   <meta charset="UTF-8" />
   <title>Dashboard APAR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -18,15 +23,23 @@
       margin: 0;
     }
 
-    .sidebar {
-      height: 100vh;
-      background-color: #343a40;
-      color: white;
-      padding-top: 20px;
-      position: fixed;
-      width: 250px;
-      transition: background-color 0.3s;
-    }
+   /* Sidebar normal */
+/* ================= SIDEBAR ================= */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  background: #1f2328;
+  transition: transform 0.4s ease;
+  z-index: 2000;
+}
+
+/* SIDEBAR TERTUTUP TOTAL */
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
 
     .sidebar a {
       color: white;
@@ -67,10 +80,15 @@
       opacity: 1;
     }
 
+   /* Main content bergeser saat sidebar collapse */
     .main-content {
-      margin-left: 250px;
-      padding: 80px 20px 20px 20px;
-      min-height: 90vh;
+      margin-left: 240px;
+      padding-top: 60px;
+      transition: margin-left 0.4s ease;
+    }
+
+    .main-content.expanded {
+      margin-left: 0;
     }
 
     #loader {
@@ -141,6 +159,7 @@
       position: relative;
       min-height: 180px;
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+      z-index: 1;
     }
 
     .card.expired-blink {
@@ -287,21 +306,30 @@
     }
 
     /* User info & logout */
-   #userInfo {
-      position: fixed;
-      top: 0;
-      left: 250px; /* karena sidebar lebarnya 250px */
-      width: calc(100% - 250px);
-      background: #f0f2f5;
-      z-index: 1000;
-      padding: 10px 20px;
-      border-bottom: 1px solid #ccc;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 10px;
-      font-size: 16px;
-    }
+    #userInfo {
+    position: fixed;
+    top: 0;
+    left: 240px;
+    width: calc(100% - 240px);
+    height: 50px;
+    background: #f0f2f5;
+    z-index: 2500;
+    padding: 8px 20px;
+    border-bottom: 1px solid #ccc;
+
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+
+    transition: left 0.4s ease, width 0.4s ease;
+  }
+
+  /* 🔥 SIDEBAR TERTUTUP → HEADER FULL */
+  #userInfo.expanded {
+    left: 0;
+    width: 100%;
+  }
 
     #userInfo button {
       padding: 4px 8px;
@@ -328,55 +356,60 @@
     }
 
     #toggleSidebar {
-      position: fixed;
-      top: 5px;
-      left: 220px;
-      z-index: 3000;
-      font-size: 20px;
-      font-weight: bold;
-      background-color: #343a40;
-      color: #fff;
-      border: 2px solid transparent;
-      border-radius: 6px;
-      padding: 1px 3px;
-      cursor: pointer;
-      transition: all 0.6s ease;
-      
-    }
+  position: fixed;
+  top: 6px;
+  left: 210px;
+  z-index: 3000;
 
-    #toggleSidebar:hover {
-      background-color: #0cd8b6;   /* warna hover */
-      color: #fff;
-      border-color: #0cd8b6;
-      transform: scale(1.1);
-      box-shadow: 0 0 10px rgba(12, 216, 182, 0.7);
-    }
+  background: none;
+  border: none;
+  padding: 2px;
 
-    #toggleSidebar:active {
-      transform: scale(0.95);
-      box-shadow: 0 0 4px rgba(12, 216, 182, 0.5);
-    }
+  color: #ffffff;              /* PUTIH saat sidebar terbuka */
+  cursor: pointer;
 
+  transition: color 0.4s ease,
+              left 0.4s ease,
+              transform 0.2s ease;
+}
 
-    /* Saat sidebar dilipat, tombol ikut geser */
-    .sidebar.collapsed + #toggleSidebar,
-    #toggleSidebar.sidebar-collapsed {
-      left: 10px !important;
-    }
+#toggleSidebar:hover {
+  transform: scale(1.15);
+  color: #0cd8b6;
+}
+
+/* Sidebar tertutup */
+#toggleSidebar.sidebar-collapsed {
+  left: 10px;
+  color: #000000;              /* HITAM */
+}
+
+/* Putar icon */
+#toggleSidebar.sidebar-collapsed svg {
+  transform: rotate(180deg);
+}
+
+#toggleSidebar svg {
+  transition: transform 0.4s ease;
+}
 
     /* Responsif di layar kecil */
     @media (max-width: 768px) {
-      #toggleSidebar {
-        left: 10px !important;
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.show {
+        transform: translateX(0);
+      }
+
+      .main-content {
+        margin-left: 0;
       }
     }
 
-    .sidebar.collapsed {
-      width: 0;
-      overflow: hidden;
-      transition: all 0.6s ease;
-    }
-    .main-content.expanded {
+
+  .main-content.expanded {
       margin-left: 0;
       transition: all 0.6s ease;
     }
@@ -481,85 +514,379 @@
 /* === Mobile Responsive === */
 @media (max-width: 768px) {
   /* Sidebar jadi overlay */
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+  width: 240px;
+  background: #1f2328;
+  height: 100vh;
+  color: #fff;
+}
+
+.submenu-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  cursor: pointer;
+  position: relative;
+}
+
+/* PANAH DEFAULT ▶ */
+.submenu-toggle::after {
+  content: ">";
+  position: absolute;
+  right: 15px;
+  transition: transform 0.25s ease;
+}
+
+/* PANAH TERBUKA ▼ */
+.submenu-toggle.open::after {
+  transform: rotate(90deg);
+}
+
+.submenu {
+  display: none;
+  background: #2f343a;
+}
+
+.submenu.open {
+  display: block;
+}
+
+.submenu a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px 8px 45px;
+  font-size: 14px;
+}
+
+/* ACTIVE */
+.sidebar a.active {
+  background: #495057;
+  color: #0cd8b6;
+}
+
+.menu-icon {
+  width: 16px;
+}
+
+
+/* GARIS PENANDA HIERARKI (OPSIONAL, TAMPIL ELEGAN) */
+.submenu a::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: #0cd8b6;
+  border-radius: 50%;
+  margin-right: 10px;
+  opacity: 0.7;
+}
+
+/* ================= MENU TOGGLE ================= */
+.submenu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 15px;
+  cursor: pointer;
+}
+
+/* PANAH SMART REPORT (DEFAULT ▶) */
+.submenu-toggle::after {
+  content: "▶";
+  margin-left: auto;
+  font-size: 13px;
+  transition: transform 0.25s ease;
+}
+
+/* SAAT TERBUKA → ▼ */
+.submenu-toggle.open::after {
+  transform: rotate(90deg);
+}
+
+
+.menu-icon {
+  width: 18px;
+  margin-right: 10px;
+}
+
+/* PANAH SMART REPORT */
+.arrow {
+  margin-left: auto;
+  font-size: 14px;
+  transition: transform 0.25s ease;
+}
+
+/* TERTUTUP → KE KANAN */
+.submenu-toggle .arrow {
+  transform: rotate(0deg);
+}
+
+/* TERBUKA → KE BAWAH */
+.submenu-toggle.open .arrow {
+  transform: rotate(90deg);
+}
+
+
+/* ================= ACTIVE ================= */
+/* ACTIVE & HOVER SEMUA MENU */
+.sidebar a.active,
+.sidebar a:hover,
+.sidebar .submenu-toggle.active,
+.sidebar .submenu-toggle.open {
+  background: #495057;
+  color: #0cd8b6;
+}
+
+/* ICON IKUT NYALA */
+.sidebar .submenu-toggle.active .menu-icon,
+.sidebar .submenu-toggle.open .menu-icon {
+  filter: invert(73%) sepia(74%) saturate(485%)
+          hue-rotate(118deg) brightness(95%) contrast(90%);
+}
+
+
+/* ================= COLLAPSED ================= */
+
+
+.sidebar.collapsed .submenu {
+  display: none !important;
+}
+
+.sidebar.collapsed .arrow {
+  display: none;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
   .sidebar {
-    position: fixed;
-    top: 0;
-    left: -250px; /* sembunyikan */
-    width: 250px;
-    height: 100%;
-    transition: left 0.3s ease;
-    z-index: 2000;
+    left: -240px;
   }
-
+  
   .sidebar.show {
-    left: 0; /* tampilkan saat toggle */
-  }
-
-  /* Tombol toggle pindah ke kiri atas */
-  #toggleSidebar {
-    left: 10px !important;
-    top: 10px;
-    background-color: #343a40;
-    color: #fff;
-    z-index: 3001;
-  }
-
-  /* Main content full width */
-  .main-content {
-    margin-left: 0 !important;
-    padding: 70px 10px 20px 10px;
-  }
-
-  /* User info bar lebih kecil */
-  #userInfo {
     left: 0;
-    width: 100%;
-    font-size: 14px;
-    padding: 8px;
-    justify-content: space-between;
   }
 
-  /* Grid card jadi 1 kolom */
-  #aparContainer {
-    grid-template-columns: 1fr;
-  }
-
-  /* Controls stack ke bawah */
-  .controls {
-    flex-direction: column;
-    align-items: stretch;
-    margin-top: 10px;
-  }
-
-  .controls select,
-  .controls button {
-    width: 100%;
-    justify-content: center;
+  .main-content {
+    margin-left: 0;
   }
 }
 
-    
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 9999;
+}
+
+.spinner {
+  width: 45px;
+  height: 45px;
+  border: 5px solid #ccc;
+  border-top: 5px solid #0cd8b6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}   
+
+.analytic-charts {
+  margin-top: 24px;
+}
+
+.chart-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.08);
+  min-height: 420px;
+}
+
+.chart-box {
+  position: relative;
+  width: 100%;
+  height: 320px;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .chart-canvas {
+    height: 260px;
+  }
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.page-title h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 800;
+  font-family: "bauhaus 93", sans-serif;
+  color: #212529;
+}
+
+.page-title .update-time {
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  background: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.btn-action:hover {
+  background: #e9ecef;
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  background: #ffffff;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-action:hover {
+  background: #e9ecef;
+}
+
+#mapContainer {
+  position: relative;
+}
+
+
+.btn-export-map {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  background: #0d6efd;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  pointer-events: auto;
+}
+
+.btn-export-map img {
+  width: 18px;
+  filter: invert(1);
+}
+
+.btn-export-map:hover {
+  background: #0b5ed7;
+}
+
+.map-toolbar {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10000;          /* PALING PENTING */
+  pointer-events: auto;
+}
+
+h6.text-center {
+  font-size: 22px;
+  font-family: "bauhaus 93", sans-serif;
+}
+
   </style> 
 </head>
 <!-- Tombol Panah (Floating) -->
-<button id="toggleSidebar" class="btn btn-dark">◀</button>
+<button id="toggleSidebar" aria-label="Toggle Sidebar">
+  <svg id="toggleIcon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <path d="M15 6L9 12L15 18"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </svg>
+</button>
 
-<!-- Sidebar -->
+
+<!-- Sidebar -->   
 <div class="sidebar">
-  <img src="dsngroup.png" alt="Logo" style="width: 40%; display: block; margin: 0 auto 20px auto;" />
+   <img src="dsngroup.png" style="width:40%;margin:0 auto 20px; display:block; top:30px">
 
-  <a id="menuDashboard" class="active" onclick="loadDashboard()">
-    <img src="https://img.icons8.com/ios/50/computer--v1.png" alt="Monitor" class="menu-icon" /> Dashboard
+  <a href="javascript:void(0)"
+   id="menuSmartReport"
+   class="submenu-toggle"
+   onclick="toggleSubmenu(this)">
+  <img src="https://img.icons8.com/ios-filled/50/combo-chart--v1.png" class="menu-icon">
+  <span>Smart Report</span>
+</a>
+
+<div class="submenu">
+
+  <a href="javascript:void(0)"
+     id="menuDashboard"
+     onclick="activateSubmenu(this); loadDashboard();">
+    <img src="https://img.icons8.com/ios-filled/50/tv.png" class="menu-icon">
+    Dashboard APAR
   </a>
 
+  <a href="javascript:void(0)"
+     onclick="activateSubmenu(this); loadAnalyticAPAR();">
+    <img src="https://img.icons8.com/ios-filled/50/database.png" class="menu-icon">
+    Data APAR
+  </a>
+</div>
+
   <a id="menuMap" onclick="loadDistributionMap()">
-    <img src="https://img.icons8.com/ios/50/worldwide-location--v1.png" alt="Map" class="menu-icon" /> Distribution Map
+    <img src="https://img.icons8.com/ios/50/worldwide-location--v1.png" class="menu-icon">
+    Distribution Map
   </a>
 
   <a href="tfm_Input.html">
-    <img src="https://img.icons8.com/ios/50/document--v1.png" alt="Form" class="menu-icon" /> Form Input
+    <img src="https://img.icons8.com/ios/50/document--v1.png" class="menu-icon">
+    Form Input
   </a>
-  </div>
+</div>
+
+
   <!-- Emergency Call Link X
   <a href="call.dart">
     <img src="https://img.icons8.com/ios/50/phone--v1.png" alt="Call" class="menu-icon" /> Emergency Call
@@ -580,21 +907,34 @@
 
 
   <!-- Dashboard Content -->
-  <div id="dashboardContent" style="display:none;">
+ <div id="dashboardContent" style="display:none;">
     <h1>Dashboard Monitoring APAR</h1>
     <div id="lastUpdate">Update: -</div>
 
-    <div class="controls">
-      <select id="filterJenis" class="form-select form-select-sm" style="width: 100px;">
+   <div class="controls">
+      <select id="filterJenis" class="form-select form-select-sm" style="width: 110px;">
         <option value="all">All Type</option>
         <option value="powder">Powder</option>
         <option value="foam">Foam</option>
         <option value="co2">CO₂</option>
       </select>
+      <select id="filterStatus" class="form-select form-select-sm" style="width: 130px;">
+        <option value="all">All Status</option>
+        <option value="ready">Ready</option>
+        <option value="expired">Expired</option>
+        <option value="maintenance">Maintenance</option>
+        <option value="warning">Warning</option>
+      </select>
+     
       <button id="btnSave"><img src="https://img.icons8.com/ios/50/save--v1.png" /> Save</button>
       <button id="btnBackup"><img src="https://img.icons8.com/ios/50/data-backup.png" /> Backup</button>
       <button id="btnExport"><img src="https://img.icons8.com/ios/50/export-excel.png" /> Export</button>
       <button id="btnPrint"><img src="https://img.icons8.com/ios/50/print.png" /> Print</button>
+    </div>
+
+    <!-- ================= DASHBOARD CHART ================= -->
+    <div id="dashboardChartContent" style="display:none;">
+      
     </div>
 
     <div id="loader">
@@ -605,7 +945,75 @@
     </div>
 
     <div id="aparContainer"></div>
+</div>
+
+    <!-- ================= DATA APAR / ANALYTIC ================= -->
+   <!-- ================= DATA APAR / ANALYTIC ================= -->
+<div id="dataAPARContent" style="display:none;">
+
+  <div class="page-header">
+  <div class="page-title">
+    <h1>Fire Extinguisher Analysis Dashboard</h1>
+    <span class="update-time">
+      Update: <span id="lastUpdateAnalytic"></span>
+    </span>
   </div>
+
+  <div class="page-actions">
+    <button class="btn-action" onclick="exportCombinedPNG()">
+      <img src="https://img.icons8.com/ios/50/export.png" width="18">
+      Export
+    </button>
+  </div>
+</div>
+
+  <div class="row g-4 analytic-charts">
+    <div class="col-lg-6 col-md-12">
+      <div class="chart-card">
+        <h6 class="text-center">Status APAR</h6>
+        <div class="chart-box">
+          <canvas id="pieApar"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-6 col-md-12">
+      <div class="chart-card">
+        <h6 class="text-center">Summary APAR</h6>
+        <div class="chart-box">
+          <canvas id="barApar"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- TABLE -->
+  <div class="card mt-4">
+    <div class="table-responsive">
+      <table  id="analyticTable" class="table table-bordered table-striped mb-0 text-center">
+        <thead class="table-secondary">
+          <tr>
+            <th>Date</th>
+            <th>Stock</th>
+            <th>Installed</th>
+            <th>Ready</th>
+            <th>Expired</th>
+            <th>Maintenance</th>
+            <th>Warning</th>
+            <th>Availability</th>
+          </tr>
+        </thead>
+        <tbody id="aparTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+
+
 
   <!-- Distribution Map -->
   <div id="distributionMapContent" style="display:none;">
@@ -620,15 +1028,29 @@
       loading="lazy"
       referrerpolicy="no-referrer-when-downgrade">
     </iframe>
+    </div>
   </div>
+  <div id="globalLoading" class="loading-overlay">
+  <div class="spinner"></div>
+  <p>Memperbarui data...</p>
+</div>
+
 
 </div>
 
 
   <!-- Firebase and script -->
   <script type="module">
+  let lastAparData = {};
+
   const name = localStorage.getItem("userName") || "Guest";
   const status = localStorage.getItem("userStatus") || "Unknown";
+  if (typeof Chart === "undefined") {
+  alert("Chart.js belum ter-load");
+  throw new Error("Chart.js not loaded");
+}
+
+  Chart.register(ChartDataLabels);
 
   document.getElementById("usernameText").innerText = name;
   document.getElementById("statusText").innerText = status;
@@ -748,47 +1170,90 @@ document.getElementById("btnUpdateSave").onclick = async () => {
   loadDashboard();
 };
 
-// Auto reload dashboard setiap 10 menit (600.000 ms)
-setInterval(() => {
-  loadDashboard();
-}, 600000);
 
-  function setActiveMenu(menuId) {
-    const menuItems = document.querySelectorAll('.sidebar a');
-    menuItems.forEach(item => item.classList.remove('active'));
-    const activeMenu = document.getElementById(menuId);
-    if (activeMenu) activeMenu.classList.add('active');
-  }
+ function setActiveMenu(menuId) {
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+  const el = document.getElementById(menuId);
+  if (el) el.classList.add('active');
+}
 
-  window.loadDistributionMap = () => {
-    setActiveMenu("menuMap");
-    document.getElementById("dashboardContent").style.display = "none";
-    document.getElementById("loader").style.display = "none";
-    document.getElementById("distributionMapContent").style.display = "block";
-  };
+
+ window.loadDistributionMap = () => {
+  // reset semua menu & submenu
+  document.querySelectorAll(".sidebar a").forEach(a =>
+    a.classList.remove("active", "open")
+  );
+  document.querySelectorAll(".submenu").forEach(s =>
+    s.classList.remove("open")
+  );
+
+  // aktifkan menu map
+  setActiveMenu("menuMap");
+
+  // tampilkan konten
+  document.getElementById("dashboardContent").style.display = "none";
+  document.getElementById("loader").style.display = "none";
+  document.getElementById("distributionMapContent").style.display = "block";
+};
 
   window.loadDashboard = () => {
-    setActiveMenu("menuDashboard");
-    document.getElementById("dashboardContent").style.display = "none";
-    document.getElementById("distributionMapContent").style.display = "none";
-    document.getElementById("loader").style.display = "block";
 
-    onValue(aparRef, snapshot => {
-      const data = snapshot.val() || {};
-      renderDashboard(data);
-      document.getElementById("lastUpdate").innerText = "Update: " + new Date().toLocaleString();
-      document.getElementById("loader").style.display = "none";
-      document.getElementById("dashboardContent").style.display = "block";
-    }, { onlyOnce: true });
-  };
+  // reset semua active
+  document.querySelectorAll(".sidebar a").forEach(a =>
+    a.classList.remove("active")
+  );
 
- function autoStatus(apar) {
+  // aktifkan submenu Dashboard APAR
+  const dashboardMenu = document.getElementById("menuDashboard");
+  dashboardMenu.classList.add("active");
+
+  // aktifkan parent Smart Report
+  const parentBtn = dashboardMenu.closest(".submenu").previousElementSibling;
+  parentBtn.classList.add("active", "open");
+  dashboardMenu.closest(".submenu").classList.add("open");
+
+  // tampilkan konten
+  document.getElementById("dashboardContent").style.display = "none";
+  document.getElementById("distributionMapContent").style.display = "none";
+  document.getElementById("dataAPARContent").style.display = "none";
+  document.getElementById("loader").style.display = "block";
+
+  onValue(aparRef, snapshot => {
+  lastAparData = snapshot.val() || {};
+  renderDashboard(lastAparData);
+    document.getElementById("lastUpdate").innerText =
+      "Update: " + new Date().toLocaleString();
+    document.getElementById("loader").style.display = "none";
+    document.getElementById("dashboardContent").style.display = "block";
+  }, { onlyOnce: true });
+};
+
+
+function autoStatus(apar) {
   const expiredDate = new Date(apar.expired);
   const isExpired = apar.expired && !isNaN(expiredDate) && expiredDate < new Date();
 
   const segelRusak  = apar.segelCondition?.toLowerCase() === "rusak";
   const nozzleRusak = apar.nozzleCondition?.toLowerCase() === "rusak";
   const r5Kotor     = apar.r5Condition?.toLowerCase() === "kotor";
+
+  // --- CEK TEKANAN ---
+  let pressureWarning = false;
+  if (apar.pressure && apar.pressureUnit) {
+    const pressure = parseFloat(apar.pressure);
+    const unit = apar.pressureUnit.toLowerCase();
+
+    if (unit === "bar") {
+      if (pressure < 11 || pressure > 17) {
+        pressureWarning = true;
+      }
+    } else if (unit === "psi") {
+      if (pressure < 190 || pressure > 198) {
+        pressureWarning = true;
+      } 
+    }
+  }
+  
 
   // 🔴 Semua bermasalah → WARNING
   if (isExpired && segelRusak && nozzleRusak && r5Kotor) {
@@ -805,63 +1270,508 @@ setInterval(() => {
     return "maintenance";
   }
 
+  // ⚠️ Tekanan di luar batas → WARNING
+  if (pressureWarning) {
+    return "warning";
+  }
+
   // ✅ Semua normal → READY
   return "ready";
 }
 
- function renderDashboard(data = {}) {
+let pieChart = null;
+let barChart = null;
+
+const expiredOutsideLabel = {
+  id: "expiredOutsideLabel",
+  afterDraw(chart) {
+    const ctx = chart.ctx;
+    const dataset = chart.data.datasets[0];
+    const total = dataset.data.reduce((a,b)=>a+b,0);
+
+    const expiredIndex = chart.data.labels.indexOf("Expired");
+    const expiredValue = dataset.data[expiredIndex];
+
+    if (!expiredValue || !total) return;
+
+    const pct = (expiredValue / total) * 100;
+    if (pct >= 10) return; // kalau besar, biarin datalabels
+
+    const meta = chart.getDatasetMeta(0).data[expiredIndex];
+    if (!meta) return;
+
+    const { x, y } = meta.tooltipPosition();
+
+    ctx.save();
+    ctx.font = "bold 12px Arial";
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+
+    // teks
+    ctx.fillText(`${pct.toFixed(1)}%`, x + 22, y);
+
+    // leader line
+    ctx.beginPath();
+    ctx.moveTo(x + 5, y);
+    ctx.lineTo(x + 18, y);
+    ctx.strokeStyle = "#dc3545";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+
+window.loadAnalyticAPAR = async () => {
+  try {
+    showLoading();
+
+    document.getElementById("dashboardContent").style.display = "none";
+    document.getElementById("distributionMapContent").style.display = "none";
+    document.getElementById("dataAPARContent").style.display = "block";
+
+    await new Promise(r => setTimeout(r, 200));
+
+    const aparSnap = await get(ref(db, "aparData"));
+    const stockSnap = await get(ref(db, "aparStock/total"));
+
+    const aparData = aparSnap.val() || {};
+    const stokTotal = Number(stockSnap.val()) || 0;
+
+    let ready = 0, expired = 0, maintenance = 0, warning = 0;
+    let installed = 0;
+
+    Object.values(aparData).forEach(a => {
+      const s = autoStatus(a);
+      if (s === "ready") ready++;
+      else if (s === "expired") expired++;
+      else if (s === "maintenance") maintenance++;
+      else if (s === "warning") warning++;
+
+      // Hitung installed → jika ada lokasi dan nomor
+      if (a.number && a.location) installed++;
+    });
+
+    const pieCanvas = document.getElementById("pieApar");
+    const barCanvas = document.getElementById("barApar");
+
+    await new Promise(requestAnimationFrame);
+    await new Promise(r => setTimeout(r, 50));
+
+   if (pieChart) pieChart.destroy();
+
+pieChart = new Chart(pieCanvas, { 
+  type: "doughnut",
+  data: {
+    labels: ["Expired", "Ready", "Maintenance", "Warning"],
+    datasets: [{
+      data: [0, 0, 0, 0], // ⬅️ START KOSONG
+      backgroundColor: ["#dc3545","#198754","#0dcaf0","#ffc107"]
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: "65%",
+    animation: {
+      duration: 1200,
+      easing: "easeOutQuart"
+    },
+      plugins: {
+        datalabels: {
+          clip: false,
+          display: true,    
+          formatter: (value, ctx) => {
+            const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+            if (!total || value === 0) return "";
+            return `${((value / total) * 100).toFixed(1)}%`;
+          },
+
+          color: ctx => {
+            const value = ctx.dataset.data[ctx.dataIndex];
+            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+            const pct = (value / total) * 100;
+            return pct < 10 ? "#dc3545" : "#ffffff";
+          },
+
+          font: ctx => {
+            const value = ctx.dataset.data[ctx.dataIndex];
+            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+            const pct = (value / total) * 100;
+            return {
+              weight: "bold",
+              size: pct < 10 ? 11 : 13
+            };
+          },
+
+          // 🔑 KUNCI VISIBILITAS EXPIRED
+          anchor: ctx => {
+            const value = ctx.dataset.data[ctx.dataIndex];
+            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+            return (value / total) * 100 < 10 ? "end" : "center";
+          },
+
+          align: ctx => {
+            const value = ctx.dataset.data[ctx.dataIndex];
+            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+            return (value / total) * 100 < 10 ? "end" : "center";
+          },
+
+          offset: ctx => {
+            const value = ctx.dataset.data[ctx.dataIndex];
+            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+            return (value / total) * 100 < 10 ? 26 : 0; // ⬅️ DORONG KELUAR DONUT
+          }
+        },
+        legend: {
+          position: "bottom"
+        }
+      }
+    },
+    plugins: [expiredOutsideLabel]
+    });
+    
+    await new Promise(requestAnimationFrame);
+    pieChart.data.datasets[0].data = [
+      expired,
+      ready,
+      maintenance,
+      warning
+    ];
+pieChart.update();
+
+    if (barChart) barChart.destroy();
+      barChart = new Chart(barCanvas, {
+        type: "bar",
+        data: {
+          labels: ["Installed", "Ready", "Expired", "Maintenance", "Warning"],
+          datasets: [{
+            label: "Jumlah APAR",
+            data: [0, 0, 0, 0, 0], // ⬅️ START 0
+            backgroundColor: [
+              "#6c757d",
+              "#198754",
+              "#dc3545",
+              "#0dcaf0",
+              "#ffc107"
+            ],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          animation: {
+            duration: 1000,
+            easing: "easeOutQuart"
+              },
+              layout: {
+                padding: {
+                  top: 30   // ⬅️ PENTING agar angka tidak kepotong
+                }
+              },
+              plugins: {
+                legend: { display: false },
+                datalabels: {
+                  anchor: "end",
+                  align: "top",
+                  offset: 4,
+                  font: {
+                    weight: "bold",
+                    size: 12
+                  },
+                  formatter: value => value === 0 ? "" : value
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  suggestedMax: Math.max(installed, ready) + 10, // ⬅️ BIAR LEGA
+                  ticks: {
+                    stepSize: 10
+                  },
+                  grid: {
+                    drawBorder: false
+                  }
+                },
+                x: {
+                  grid: {
+                    display: false
+                  }
+                }
+              }
+            }
+          });
+          await new Promise(requestAnimationFrame);
+          barChart.data.datasets[0].data = [
+            installed,
+            ready,
+            expired,
+            maintenance,
+            warning
+          ];
+
+          barChart.update();
+
+    // Update Tabel Summary
+    document.getElementById("aparTableBody").innerHTML = `
+      <tr>
+        <td>${new Date().toLocaleDateString()}</td>
+        <td>${stokTotal}</td>
+        <td>${installed}</td>
+        <td>${ready}</td>
+        <td>${expired}</td>
+        <td>${maintenance}</td>
+        <td>${warning}</td>
+        <td>${installed ? ((ready / installed) * 100).toFixed(1) : 0}%</td>
+      </tr>
+    `;
+  } catch (err) {
+    console.error("Analytic Error:", err);
+    alert("Gagal memuat Analitik APAR (cek console)");
+  } finally {
+    hideLoading();
+  }
+};
+
+let pieReady = false;
+let barReady = false;
+
+
+function updateAnalyticTime() {
+  const now = new Date();
+  const formatted = now.toLocaleString("id-ID");
+  document.getElementById("lastUpdateAnalytic").textContent = formatted;
+}
+setInterval(updateAnalyticTime, 600000);
+
+
+updateAnalyticTime();
+
+
+let aparChart = null;
+
+function renderDashboard(data = {}) {
+
   const container = document.getElementById("aparContainer");
   container.innerHTML = "";
-  const filterJenis = document.getElementById("filterJenis").value;
 
+  const filterJenis  = document.getElementById("filterJenis").value;
+  const filterStatus = document.getElementById("filterStatus").value;
   const isAdmin = status.toLowerCase() === "admin";
 
   Object.entries(data).forEach(([key, apar]) => {
-    if (filterJenis !== "all" && apar.type?.toLowerCase() !== filterJenis) return;
 
-    let typeClass = apar.type?.toLowerCase() || "";
+    // FILTER JENIS
+    if (
+      filterJenis !== "all" &&
+      apar.type?.toLowerCase() !== filterJenis
+    ) return;
 
-    // Hitung status otomatis
     const auto = autoStatus(apar);
 
-    // --- NOTIFIKASI ---
-    let gantiAparNotif = "";
-    if (auto === "warning") {
-      gantiAparNotif = `<div class='ganti-apar'>🚨 GANTI APAR!</div>`;
-    }
+    // FILTER STATUS
+    if (
+      filterStatus !== "all" &&
+      auto !== filterStatus
+    ) return;
 
-    let expiredNotif = "";
-    if (auto === "expired") {
-      expiredNotif = `<div class="expired-warning">⚠️ Sudah Expired!</div>`;
-    }
-
-    // --- TEMPLATE CARD ---
     const card = document.createElement("div");
-    card.className = `card ${auto === "maintenance" ? "maintenance-blink" : ""} ${auto === "expired" ? "expired-blink" : ""}`;
+    card.className = `card ${
+      auto === "maintenance" ? "maintenance-blink" : ""
+    } ${
+      auto === "expired" ? "expired-blink" : ""
+    }`;
 
     card.innerHTML = `
       ${isAdmin ? `<button class="update-btn" onclick='promptUpdate("${key}", ${JSON.stringify(apar).replace(/"/g,'&quot;')})'>Update</button>` : ""}
       ${isAdmin ? `<button class="delete-btn" onclick='deleteData("${key}")'>Delete</button>` : ""}
-      <h1 class="${typeClass}">${apar.type}</h1>
+
+      <h1 class="${apar.type?.toLowerCase() || ""}">${apar.type}</h1>
       <h2>${apar.number} - ${apar.location}</h2>
       <h3>⏱️ ${apar.pressure} ${apar.pressureUnit}</h3>
       <p>⚖️ ${apar.capacity} ${apar.capacityUnit}</p>
+
       <span class="status ${auto}">${auto.toUpperCase()}</span>
-      ${gantiAparNotif}
-      ${expiredNotif}
+
+      ${auto === "warning" ? `<div class="ganti-apar">🚨 GANTI APAR!</div>` : ""}
+      ${auto === "expired" ? `<div class="expired-warning">⚠️ Sudah Expired!</div>` : ""}
+
       <span class="exp-date">🗓️ Exp: ${apar.expired || "-"}</span>
     `;
 
     container.appendChild(card);
   });
+
+  document.getElementById("lastUpdate").innerText =
+    "Update: " + new Date().toLocaleString();
 }
 
-  // Filter by Type
-  document.getElementById("filterJenis").addEventListener("change", () => {
-    get(aparRef).then(snapshot => {
-      renderDashboard(snapshot.val() || {});
+    document.getElementById("filterJenis")
+      .addEventListener("change", () => {
+        renderDashboard(lastAparData);
+      });
+
+    document.getElementById("filterStatus")
+      .addEventListener("change", () => {
+        renderDashboard(lastAparData);
+      });
+
+
+  // Update chart doughnut
+  const ctx = document.getElementById("aparStatusChart");
+  if (ctx) {
+    if (aparChart) aparChart.destroy();
+    aparChart = new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: ["Expired", "Warning", "Maintenance"],
+        datasets: [{
+          data: [countExpired, countWarning, countMaintenance],
+          backgroundColor: ["#dc3545", "#ffc107", "#0dcaf0"]
+        }]
+      }
     });
+  }
+
+  document.getElementById("lastUpdate").innerText = "Update: " + new Date().toLocaleString();
+
+
+  document.getElementById("lastUpdate").innerText = "Update: " + new Date().toLocaleString();
+
+window.exportCombinedPNG = async function () {
+
+  const pie = document.getElementById("pieApar");
+  const bar = document.getElementById("barApar");
+  const table = document.getElementById("analyticTable");
+
+  if (!pie || !bar || !table) {
+    alert("Chart / tabel belum siap");
+    return;
+  }
+
+  // ⏱️ pastikan chart selesai render
+  await new Promise(r => setTimeout(r, 300));
+
+  /* === AMBIL UKURAN REAL DI LAYAR === */
+  const pieRect = pie.getBoundingClientRect();
+  const barRect = bar.getBoundingClientRect();
+
+  const padding = 40;
+  const gap = 30;
+  const titleHeight = 90;
+
+  const chartHeight = Math.max(pieRect.height, barRect.height);
+  const chartsWidth = pieRect.width + barRect.width + gap;
+
+  const tableCanvas = await htmlTableToCanvas(
+    table,
+    Math.max(chartsWidth, table.offsetWidth)
+  );
+
+  /* === CANVAS EXPORT === */
+  const scale = 2;
+  const canvas = document.createElement("canvas");
+
+  canvas.width = (chartsWidth + padding * 2) * scale;
+  canvas.height =
+    (titleHeight + chartHeight + tableCanvas.height + padding * 2) * scale;
+
+  const ctx = canvas.getContext("2d");
+  ctx.scale(scale, scale);
+
+  /* === BACKGROUND === */
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  /* === TITLE === */
+  ctx.fillStyle = "#212529";
+  ctx.font = "bold 28px Arial";
+  ctx.fillText("Analytic Monitoring APAR", padding, 40);
+
+  ctx.font = "14px Arial";
+  ctx.fillStyle = "#6c757d";
+  ctx.fillText(
+    "Update: " + new Date().toLocaleString("id-ID"),
+    padding,
+    65
+  );
+
+  /* === DRAW CHART (TANPA MERUSAK RASIO) === */
+  const chartY = titleHeight;
+
+  ctx.drawImage(
+    pie,
+    padding,
+    chartY,
+    pieRect.width,
+    chartHeight
+  );
+
+  ctx.drawImage(
+    bar,
+    padding + pieRect.width + gap,
+    chartY,
+    barRect.width,
+    chartHeight
+  );
+
+  /* === DRAW TABLE === */
+  ctx.drawImage(
+    tableCanvas,
+    padding,
+    chartY + chartHeight + 30
+  );
+
+  /* === DOWNLOAD === */
+  const link = document.createElement("a");
+  link.href = canvas.toDataURL("image/png", 1.0);
+  link.download = `Data_Apar_${getToday()}.png`;
+  link.click();
+};
+
+
+
+function htmlTableToCanvas(table, maxWidth) {
+  return new Promise(resolve => {
+    const rows = table.rows;
+    const rowHeight = 40;
+    const colCount = rows[0].cells.length;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = maxWidth;
+    canvas.height = rows.length * rowHeight;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const colWidth = canvas.width / colCount;
+
+    ctx.strokeStyle = "#dee2e6";
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    [...rows].forEach((row, r) => {
+      [...row.cells].forEach((cell, c) => {
+        const x = c * colWidth;
+        const y = r * rowHeight;
+
+        ctx.fillStyle = r === 0 ? "#e9ecef" : "#ffffff";
+        ctx.fillRect(x, y, colWidth, rowHeight);
+
+        ctx.strokeRect(x, y, colWidth, rowHeight);
+
+        ctx.fillStyle = "#212529";
+        ctx.fillText(cell.innerText, x + colWidth / 2, y + rowHeight / 2);
+      });
+    });
+
+    resolve(canvas);
   });
+}
+
 
   // Export to Excel
   document.getElementById("btnExport").addEventListener("click", async () => {
@@ -878,7 +1788,7 @@ setInterval(() => {
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
     XLSX.utils.book_append_sheet(wb, ws, "APAR");
-    XLSX.writeFile(wb, "checklist_apar.xlsx");
+    XLSX.writeFile(wb, `checklist_apar_${getToday()}.xlsx`);
   });
 
   document.getElementById("btnBackup").addEventListener("click", async () => {
@@ -899,46 +1809,185 @@ setInterval(() => {
     alert("Data realtime sudah tersimpan di Firebase");
   });
 
-  // Optional: Tambahkan fitur pencarian
-  const searchBox = document.createElement("input");
-  searchBox.placeholder = "Search...";
-  searchBox.className = "form-control form-control-sm";
-  searchBox.style.maxWidth = "170px";  
-  document.querySelector(".controls").prepend(searchBox);
+ // load awal
+window.addEventListener("DOMContentLoaded", () => loadDashboard());
 
-  searchBox.addEventListener("input", async () => {
-    const query = searchBox.value.toLowerCase();
-    const snapshot = await get(aparRef);
-    const data = snapshot.val() || {};
+// === Sidebar Toggle ===
+const sidebar = document.querySelector('.sidebar');
+const mainContent = document.querySelector('.main-content');
+const toggleBtn = document.querySelector('#toggleSidebar');
 
-    const filtered = Object.fromEntries(
-      Object.entries(data).filter(([_, a]) =>
-        a.location?.toLowerCase().includes(query) || a.number?.toString().includes(query)
-      )
+// === TOGGLE SIDEBAR ===
+const userInfo = document.getElementById("userInfo");
+
+toggleBtn.addEventListener('click', () => {
+  const isCollapsed = sidebar.classList.toggle('collapsed');
+
+  mainContent.classList.toggle('expanded', isCollapsed);
+  toggleBtn.classList.toggle('sidebar-collapsed', isCollapsed);
+  userInfo.classList.toggle('expanded', isCollapsed);
+  toggleBtn.innerText = isCollapsed ? "▶" : "◀";
+
+  if (isCollapsed) {
+    document.querySelectorAll(".submenu").forEach(s => s.classList.remove("open"));
+    document.querySelectorAll(".submenu-toggle").forEach(b =>
+      b.classList.remove("open", "active")
     );
-    renderDashboard(filtered);
-  });
-
-  window.addEventListener("DOMContentLoaded", () => loadDashboard());
-  // === Sidebar Toggle (Panah Kiri/Kanan) ===
-  const sidebar = document.querySelector(".sidebar");
-  const toggleBtn = document.getElementById("toggleSidebar");
-  const mainContent = document.querySelector(".main-content");
-
- toggleBtn.addEventListener("click", () => {
-  if (window.innerWidth <= 768) {
-    sidebar.classList.toggle("show");
-    // ubah simbol panah
-    toggleBtn.innerText = sidebar.classList.contains("show") ? "◀" : "▶";
-  } else {
-    sidebar.classList.toggle("collapsed");
-    mainContent.classList.toggle("expanded");
-    toggleBtn.classList.toggle("sidebar-collapsed");
-    toggleBtn.innerText = sidebar.classList.contains("collapsed") ? "▶" : "◀";
   }
 });
 
+
+// === TOGGLE SUBMENU ===
+window.toggleSubmenu = (btn) => {
+  if (sidebar.classList.contains("collapsed")) return;
+
+  const submenu = btn.nextElementSibling;
+  btn.classList.toggle("open");
+  btn.classList.toggle("active");
+  submenu.classList.toggle("open");
+};
+
+window.activateSubmenu = (el) => {
+  // reset semua menu utama & submenu
+  document.querySelectorAll(".sidebar a").forEach(a =>
+    a.classList.remove("active")
+  );
+
+  // aktifkan submenu item
+  el.classList.add("active");
+
+  // aktifkan parent Smart Report
+  const parentBtn = el.closest(".submenu").previousElementSibling;
+  parentBtn.classList.add("active", "open");
+
+  // buka submenu
+  el.closest(".submenu").classList.add("open");
+};
+
+function showLoading() {
+  document.getElementById("globalLoading").style.display = "flex";
+}
+
+function hideLoading() {
+  document.getElementById("globalLoading").style.display = "none";
+}
+
+// Auto-update setiap 10 menit
+setInterval(loadDashboard, 10 * 60 * 1000);
+
+let touchStartX = 0;
+let touchEndX = 0;
+
+const swipeThreshold = 70; // sensitivitas swipe
+
+document.addEventListener("touchstart", (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+});
+
+document.addEventListener("touchend", (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+});
+
+function handleSwipe() {
+  const diff = touchEndX - touchStartX;
+
+  // 👉 Swipe kanan = buka sidebar
+  if (diff > swipeThreshold && sidebar.classList.contains("collapsed")) {
+    openSidebar();
+  }
+
+  // 👈 Swipe kiri = tutup sidebar
+  if (diff < -swipeThreshold && !sidebar.classList.contains("collapsed")) {
+    closeSidebar();
+  }
+}
+
+function openSidebar() {
+  sidebar.classList.remove("collapsed");
+  mainContent.classList.remove("expanded");
+  toggleBtn.classList.remove("sidebar-collapsed");
+  userInfo.classList.remove("expanded");
+  toggleBtn.innerText = ""; // SVG only
+}
+
+function closeSidebar() {
+  sidebar.classList.add("collapsed");
+  mainContent.classList.add("expanded");
+  toggleBtn.classList.add("sidebar-collapsed");
+  userInfo.classList.add("expanded");
+  toggleBtn.innerText = "";
+}
+
+setTimeout(() => {
+  pieChart?.resize();
+  barChart?.resize();
+}, 350);
+
+function exportMapExcel(aparData) {
+  const rows = [["No APAR", "Location"]];
+
+  Object.values(aparData).forEach(a => {
+    if (a.number && a.location) {
+      rows.push([a.number, a.location]);
+    }
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, "APAR Map");
+
+  XLSX.writeFile(wb, `loc_apar_${getToday()}.xlsx`);
+}
+
+function exportMapPDF(aparData) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("p", "mm", "a4");
+
+  doc.setFontSize(14);
+  doc.text("Data Lokasi APAR", 14, 15);
+
+  const tableData = [];
+  Object.values(aparData).forEach(a => {
+    if (a.number && a.location) {
+      tableData.push([a.number, a.location]);
+    }
+  });
+
+  doc.autoTable({
+    head: [["No APAR", "Location"]],
+    body: tableData,
+    startY: 25,
+    styles: { fontSize: 10 }
+  });
+
+  doc.save("layout_APAR_${getToday()}.pdf");
+}
+
+async function exportMapData() {
+  const aparSnap = await get(ref(db, "aparData"));
+  const aparData = aparSnap.val() || {};
+
+  if (confirm("OK = Export PDF\nCancel = Export Excel")) {
+    exportMapPDF(aparData);
+  } else {
+    exportMapExcel(aparData);
+  }
+}
+
+function getToday() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+
+
 </script>
+
+
 <!-- UPDATE MODAL -->
 <div class="modal fade" id="updateModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
@@ -1056,8 +2105,4 @@ setInterval(() => {
 
 </body>
 </html>
-
-
-
-
 
